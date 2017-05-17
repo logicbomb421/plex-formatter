@@ -7,7 +7,7 @@ namespace PlexFormatter
     {
         public bool IsValid { get; set; } = false;
         public List<string> Log { get; set; } = new List<string>();
-        public FileInfo[] InvalidFiles { get; set; } = { };
+        //public FileInfo[] InvalidFiles { get; set; } = { };
 
         public PlexFormatterResult(bool success)
         {
@@ -20,11 +20,19 @@ namespace PlexFormatter
             Log.AddRange(addToLog);
         }
 
-        public PlexFormatterResult(bool success, FileInfo[] invalidFiles, params string[] addToLog)
+        public PlexFormatterResult Finalzie(bool isValid, string addToLog = null)
         {
-            IsValid = success;
-            InvalidFiles = invalidFiles;
-            Log.AddRange(addToLog);
+            IsValid = isValid;
+            if (!string.IsNullOrEmpty(addToLog))
+                Log.Add(addToLog);
+            return this;
         }
+
+        //public PlexFormatterResult(bool success, FileInfo[] invalidFiles, params string[] addToLog)
+        //{
+        //    IsValid = success;
+        //    InvalidFiles = invalidFiles;
+        //    Log.AddRange(addToLog);
+        //}
     }
 }
