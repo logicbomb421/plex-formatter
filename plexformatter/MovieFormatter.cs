@@ -17,16 +17,14 @@ namespace PlexFormatter
             {
                 if (_rgx_yearKey == null)
                 {
-                    var yearPlusThree = (DateTime.Now.Year + 3).ToString();
-                    var x = yearPlusThree[yearPlusThree.Length - 2];
-                    var y = yearPlusThree[yearPlusThree.Length - 1];
-                    _rgx_yearKey = new Regex($@"(19[0-9]\d|20[0-{x}][0-{y}])");
+                    var now = DateTime.Now.Year.ToString();
+                    var x = now[now.Length - 2];
+                    _rgx_yearKey = new Regex($@"\b(19\d\d|20[0-{x}][0-9])\b", RegexOptions.Compiled | RegexOptions.IgnoreCase);
                 }
                 return _rgx_yearKey;
             }
         }
         private Regex _rgx_yearKey = null;
-        private string _rgx_match = null;
 
         private string _plexRootDirectory = null;
         public override string PlexRootDirectory
@@ -40,17 +38,17 @@ namespace PlexFormatter
             set { _plexRootDirectory = value; }
         }
 
-        public MovieFormatter(string sourceDirectory, string title = null, string plexRootDirectory = null)
+        public MovieFormatter(string sourceDirectory, string movieTitle, string plexRootDirectory = null)
         {
             if (!Directory.Exists(sourceDirectory))
                 throw new DirectoryNotFoundException($"Could not find source directory: {sourceDirectory}");
 
-            _plexRootDirectory = plexRootDirectory;
-            Title = title;
+            _plexRootDirectory = PlexRootDirectory;
             new DirectoryInfo(sourceDirectory)
                 .EnumerateFiles()
+                .Where(f => VideoExtensions.Contains(f.Extension.Replace(".","")))
                 .ToList()
-                .ForEach(f => Media.Add(new PlexMedia(f)));
+                .ForEach(f => Media.Add(new PlexMedia(f, movieTitle)));
         }
 
         public override PlexFormatterResult Validate()
@@ -60,11 +58,11 @@ namespace PlexFormatter
             {
                 //TODO return something more informative in case the implementer wants to prevent choices of the correct year to the user.
                 //TODO allow multi year override if user provides correct year.
-                var matches = rgx_yearKey.Matches(media.File.Name);
+                var matches = rgx_yearKey.Matches(media.SourceFile.Name);
                 if (matches.Count == 0)
-                    log.Add($"'{media.File.Name}' missing year identifier.");
+                    log.Add($"'{media.SourceFile.Name}' missing year identifier.");
                 else if (matches.Count > 1)
-                    log.Add($"Found multiple year identifiers in '{media.File.Name}'.");
+                    log.Add($"Found multiple year identifiers in '{media.SourceFile.Name}'.");
                 else
                     media.RegexMatch = matches[0].Value;
             }
@@ -79,64 +77,41 @@ namespace PlexFormatter
             return result;
         }
 
-        public override PlexFormatterResult FormatAndImport()
-        {
-            var valid = Validate();
-            if (!valid.IsValid)
-                return valid;
-
-            string fullBaseDirectory = $@"{PlexRootDirectory}\{Title} ({_rgx_match})\";
-            if (Directory.Exists(fullBaseDirectory))
-                return new PlexFormatterResult(false, $"Directory {fullBaseDirectory} already exists. Cannot create or copy files.");
-
-            try
-            {
-                Directory.CreateDirectory(fullBaseDirectory);
-            }
-            catch (Exception e)
-            {
-                return new PlexFormatterResult(false, $"Could not create directory: {fullBaseDirectory}.", e.Message);
-            }
-
-            var tempLog = new List<string>();
-            foreach (var file in Files)
-            {
-                var newName = $@"{fullBaseDirectory}\{Title} ({_rgx_match}){file.Extension}";
-                try
-                {
-                    file.CopyTo(newName);
-                }
-                catch (Exception e)
-                {
-                    tempLog.Add($"Could not move file: {newName}. The error was: {e.Message}");
-                }
-            }
-
-            if (tempLog.Count > 0)
-                return new PlexFormatterResult(false, tempLog.ToArray());
-
-            return new PlexFormatterResult(true);
-        }
-
         public override PlexFormatterResult Format()
         {
             var result = Validate();
             if (!result.IsValid)
                 return result;
 
-            //TODO class var
-            string fullBaseDirectory = $@"{PlexRootDirectory}\{Title} ({_rgx_match})\";
-            if (Directory.Exists(fullBaseDirectory))
-                return result.Finalzie(false, $"Directory {fullBaseDirectory} already exists. Cannot create or copy files.");
-
-            Media.ForEach(m => { if (string.IsNullOrEmpty(m.Title)) m.Title = $@"{fullBaseDirectory}\{m.Title} ({m.RegexMatch}){m.File.Extension}" });
-
+            foreach (var movie in Media)
+            {
+                if (string.IsNullOrEmpty(movie.DestinationPath))
+                {
+                    var basePath = Path.Combine(PlexRootDirectory, $"{movie.Title} ({movie.RegexMatch})");
+                    var fileName = $"{movie.Title} ({movie.RegexMatch}){movie.SourceFile.Extension}";
+                    movie.DestinationPath = $"{basePath}\\{fileName}";
+                }
+            }
             return result;
         }
 
         public override PlexFormatterResult Import()
         {
-            throw new NotImplementedException();
+            var result = new PlexFormatterResult(false);
+            foreach (var movie in Media)
+            {
+                try
+                {
+                    Directory.CreateDirectory(movie.DestinationPath.Substring(0, movie.DestinationPath.LastIndexOf('\\')));
+                    File.Copy(movie.SourceFile.FullName, movie.DestinationPath);
+                    //movie.SourceFile.CopyTo(movie.DestinationPath);
+                }
+                catch (Exception ex)
+                {
+                    return result.Finalzie(false, $"Unable to copy file. The error was: {ex.Message}");
+                }
+            }
+            return result.Finalzie(true);
         }
     }
 }

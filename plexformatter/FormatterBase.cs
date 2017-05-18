@@ -7,8 +7,8 @@ namespace PlexFormatter
     public abstract class FormatterBase
     {
         public abstract string PlexRootDirectory { get; set; }
-        public string Title { get; set; }
-        public List<PlexMedia> Media { get; set; }
+        //public string Title { get; set; }
+        public List<PlexMedia> Media { get; set; } = new List<PlexMedia>();
 
         //private IEnumerable<FileInfo> _files = null;
         //public IEnumerable<FileInfo> Files

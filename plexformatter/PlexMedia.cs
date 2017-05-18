@@ -10,10 +10,14 @@ namespace PlexFormatter
     public class PlexMedia
     {
         public string Title { get; set; }
-        public FileInfo File { get; set; }
+        public string DestinationPath { get; set; }
+        public FileInfo SourceFile { get; set; }
         public string RegexMatch { get; set; }
 
-        public PlexMedia(FileInfo file)
-            => File = file;
+        public PlexMedia(FileInfo sourceFile, string title)
+        {
+            SourceFile = sourceFile;
+            Title = title;
+        }
     }
 }

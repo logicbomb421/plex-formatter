@@ -10,15 +10,17 @@ namespace PlexFormatterTests
         [TestMethod]
         public void RunTv()
         {
-            FormatterBase tvformat = new TvFormatter("Mr. Robot", 2, @"C:\Temp\MrRb2\");
-            tvformat.FormatAndImport();
+            //FormatterBase tvformat = new TvFormatter("Mr. Robot", 2, @"C:\Temp\MrRb2\");
+            //tvformat.FormatAndImport();
         }
 
         [TestMethod]
         public void RunMovie()
         {
-            FormatterBase movieformat = new MovieFormatter("Oblivion", @"C:\Temp\obl\");
-            movieformat.FormatAndImport();
+            var mov = new MovieFormatter(@"C:\Users\Michael\Downloads\Rogue One (2016) [1080p] [YTS.AG]\", "Rogue One");
+            mov.Validate();
+            mov.Format();
+            mov.Import();
         }
     }
 }
