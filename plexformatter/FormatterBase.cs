@@ -9,6 +9,7 @@ namespace PlexFormatter
         public abstract string PlexRootDirectory { get; set; }
         //public string Title { get; set; }
         public List<PlexMedia> Media { get; set; } = new List<PlexMedia>();
+        public bool IsValidated { get; set; } = false;
 
         //private IEnumerable<FileInfo> _files = null;
         //public IEnumerable<FileInfo> Files

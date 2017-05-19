@@ -38,33 +38,53 @@ namespace PlexFormatter
             set { _plexRootDirectory = value; }
         }
 
-        public MovieFormatter(string sourceDirectory, string movieTitle, string plexRootDirectory = null)
+        public string Year { get; set; } = null;
+
+        public MovieFormatter(string source, string movieTitle, string year = null, string plexRootDirectory = null)
         {
-            if (!Directory.Exists(sourceDirectory))
-                throw new DirectoryNotFoundException($"Could not find source directory: {sourceDirectory}");
+            if (!Directory.Exists(source))
+                throw new DirectoryNotFoundException($"Could not find source directory: {source}");
+            else if (!File.Exists(source))
+                throw new FileNotFoundException($"Could not find source file: {source}");
 
             _plexRootDirectory = PlexRootDirectory;
-            new DirectoryInfo(sourceDirectory)
+            Year = year;
+
+            //directory or file
+            if ((File.GetAttributes(source) & FileAttributes.Directory) == FileAttributes.Directory)
+            {
+                new DirectoryInfo(source)
                 .EnumerateFiles()
-                .Where(f => VideoExtensions.Contains(f.Extension.Replace(".","")))
+                .Where(f => VideoExtensions.Contains(f.Extension.Replace(".", "")))
                 .ToList()
                 .ForEach(f => Media.Add(new PlexMedia(f, movieTitle)));
+            }
+            else
+            {
+                Media.Add(new PlexMedia(new FileInfo(source), movieTitle));
+            }
         }
 
         public override PlexFormatterResult Validate()
         {
             var log = new List<string>();
-            foreach (var media in Media)
+            foreach (var movie in Media)
             {
-                //TODO return something more informative in case the implementer wants to prevent choices of the correct year to the user.
-                //TODO allow multi year override if user provides correct year.
-                var matches = rgx_yearKey.Matches(media.SourceFile.Name);
-                if (matches.Count == 0)
-                    log.Add($"'{media.SourceFile.Name}' missing year identifier.");
-                else if (matches.Count > 1)
-                    log.Add($"Found multiple year identifiers in '{media.SourceFile.Name}'.");
+                if (!string.IsNullOrEmpty(Year))
+                {
+                    movie.Year = Year;
+                }
                 else
-                    media.RegexMatch = matches[0].Value;
+                {
+                    //TODO return something more informative in case the implementer wants to prevent choices of the correct year to the user.
+                    var matches = rgx_yearKey.Matches(movie.SourceFile.Name);
+                    if (matches.Count == 0)
+                        log.Add($"'{movie.SourceFile.Name}' missing year identifier.");
+                    else if (matches.Count > 1)
+                        log.Add($"Found multiple year identifiers in '{movie.SourceFile.Name}'.");
+                    else
+                        movie.Year = matches[0].Value; 
+                }
             }
 
             var result = new PlexFormatterResult(true);
@@ -74,25 +94,25 @@ namespace PlexFormatter
                 result.Log.AddRange(log);
             }
 
+            IsValidated = true;
             return result;
         }
 
         public override PlexFormatterResult Format()
         {
-            var result = Validate();
-            if (!result.IsValid)
-                return result;
+            if (!IsValidated && !Validate().IsValid)
+                return new PlexFormatterResult(false);
 
             foreach (var movie in Media)
             {
                 if (string.IsNullOrEmpty(movie.DestinationPath))
                 {
-                    var basePath = Path.Combine(PlexRootDirectory, $"{movie.Title} ({movie.RegexMatch})");
-                    var fileName = $"{movie.Title} ({movie.RegexMatch}){movie.SourceFile.Extension}";
+                    var basePath = Path.Combine(PlexRootDirectory, $"{movie.Title} ({movie.Year})");
+                    var fileName = $"{movie.Title} ({movie.Year}){movie.SourceFile.Extension}";
                     movie.DestinationPath = $"{basePath}\\{fileName}";
                 }
             }
-            return result;
+            return new PlexFormatterResult(true);
         }
 
         public override PlexFormatterResult Import()
