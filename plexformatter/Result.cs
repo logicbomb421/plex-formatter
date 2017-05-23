@@ -1,38 +1,38 @@
 ﻿using System.Collections.Generic;
-using System.IO;
 
 namespace PlexFormatter
 {
     public class PlexFormatterResult
     {
-        public bool IsValid { get; set; } = false;
-        public List<string> Log { get; set; } = new List<string>();
-        //public FileInfo[] InvalidFiles { get; set; } = { };
-
-        public PlexFormatterResult(bool success)
+        public enum ResultStatus : byte
         {
-            IsValid = success;
+            Unknown,
+            Failed,
+            Success,
         }
 
-        public PlexFormatterResult(bool success, params string[] addToLog)
+        public ResultStatus Status { get; set; } = ResultStatus.Unknown;
+        public List<string> Log { get; set; } = new List<string>();
+
+        public PlexFormatterResult() { }
+
+        public PlexFormatterResult(ResultStatus status)
         {
-            IsValid = success;
+            Status = status;
+        }
+
+        public PlexFormatterResult(ResultStatus status, params string[] addToLog)
+        {
+            Status = status;
             Log.AddRange(addToLog);
         }
 
-        public PlexFormatterResult Finalzie(bool isValid, string addToLog = null)
+        public PlexFormatterResult Finalize(ResultStatus status, string addToLog = null)
         {
-            IsValid = isValid;
+            Status = status;
             if (!string.IsNullOrEmpty(addToLog))
                 Log.Add(addToLog);
             return this;
         }
-
-        //public PlexFormatterResult(bool success, FileInfo[] invalidFiles, params string[] addToLog)
-        //{
-        //    IsValid = success;
-        //    InvalidFiles = invalidFiles;
-        //    Log.AddRange(addToLog);
-        //}
     }
 }

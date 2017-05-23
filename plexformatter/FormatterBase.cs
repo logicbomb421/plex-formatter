@@ -11,6 +11,8 @@ namespace PlexFormatter
         public List<PlexMedia> Media { get; set; } = new List<PlexMedia>();
         public bool IsValidated { get; set; } = false;
 
+        protected static Regex InvalidPathChars = new Regex(@"([^\p{L}\s\d\-_~,;\[\]\(\).'])", RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.Singleline);
+
         //private IEnumerable<FileInfo> _files = null;
         //public IEnumerable<FileInfo> Files
         //{

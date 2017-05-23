@@ -42,10 +42,8 @@ namespace PlexFormatter
 
         public MovieFormatter(string source, string movieTitle, string year = null, string plexRootDirectory = null)
         {
-            if (!Directory.Exists(source))
-                throw new DirectoryNotFoundException($"Could not find source directory: {source}");
-            else if (!File.Exists(source))
-                throw new FileNotFoundException($"Could not find source file: {source}");
+            if (!Directory.Exists(source) && !File.Exists(source))
+                throw new DirectoryNotFoundException($"Could not find source directory: {source}"); //TODO custom exception
 
             _plexRootDirectory = PlexRootDirectory;
             Year = year;
@@ -87,10 +85,10 @@ namespace PlexFormatter
                 }
             }
 
-            var result = new PlexFormatterResult(true);
+            var result = new PlexFormatterResult();
             if (log.Count > 0)
             {
-                result.IsValid = false;
+                result.Status = PlexFormatterResult.ResultStatus.Failed;
                 result.Log.AddRange(log);
             }
 
@@ -100,24 +98,50 @@ namespace PlexFormatter
 
         public override PlexFormatterResult Format()
         {
-            if (!IsValidated && !Validate().IsValid)
-                return new PlexFormatterResult(false);
+            if (!IsValidated)
+            {
+                var vr = Validate();
+                if (vr.Status != PlexFormatterResult.ResultStatus.Success)
+                    return vr;
+            }
 
+            var result = new PlexFormatterResult();
             foreach (var movie in Media)
             {
                 if (string.IsNullOrEmpty(movie.DestinationPath))
                 {
-                    var basePath = Path.Combine(PlexRootDirectory, $"{movie.Title} ({movie.Year})");
-                    var fileName = $"{movie.Title} ({movie.Year}){movie.SourceFile.Extension}";
-                    movie.DestinationPath = $"{basePath}\\{fileName}";
+                    var removed_chars = new List<char>();
+                    var title = $"{movie.Title} ({movie.Year})";
+                    var folderName = title;
+                    if (InvalidPathChars.IsMatch(folderName))
+                    {
+                        var matches = InvalidPathChars.Matches(folderName);
+                        for (int i = 0; i < matches.Count; i++)
+                            removed_chars.Add(matches[i].Value[0]);
+                        folderName = InvalidPathChars.Replace(folderName, string.Empty);
+                    }
+                    var fileName = title + movie.SourceFile.Extension;
+                    if (InvalidPathChars.IsMatch(fileName))
+                    {
+                        var matches = InvalidPathChars.Matches(fileName);
+                        for (int i = 0; i < matches.Count; i++)
+                            removed_chars.Add(matches[i].Value[0]);
+                        fileName = InvalidPathChars.Replace(fileName, string.Empty);
+                    }
+                    if (removed_chars.Count > 0)
+                    {
+                        result.Log.Add($"Removed invalid chars {string.Join(" ", removed_chars.Distinct())} from {title}");
+                    }
+                    var dbg = Path.Combine(PlexRootDirectory, folderName, fileName);
+                    movie.DestinationPath = Path.Combine(PlexRootDirectory, folderName, fileName);
                 }
             }
-            return new PlexFormatterResult(true);
+            return result.Finalize(PlexFormatterResult.ResultStatus.Success); 
         }
 
         public override PlexFormatterResult Import()
         {
-            var result = new PlexFormatterResult(false);
+            var result = new PlexFormatterResult();
             foreach (var movie in Media)
             {
                 try
@@ -128,10 +152,10 @@ namespace PlexFormatter
                 }
                 catch (Exception ex)
                 {
-                    return result.Finalzie(false, $"Unable to copy file. The error was: {ex.Message}");
+                    return result.Finalize(PlexFormatterResult.ResultStatus.Failed, $"Unable to copy file. The error was: {ex.Message}");
                 }
             }
-            return result.Finalzie(true);
+            return result.Finalize(PlexFormatterResult.ResultStatus.Success);
         }
     }
 }
