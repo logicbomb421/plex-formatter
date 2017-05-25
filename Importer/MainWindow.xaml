@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Importer"
         mc:Ignorable="d"
-        Title="MainWindow" Height="414.581" Width="627" 
+        Title="MainWindow" Height="456.581" Width="627" 
         ResizeMode="NoResize">
     <DockPanel>
         <Menu DockPanel.Dock="Top">
@@ -17,8 +17,8 @@
         </Menu>
         <Grid>
             <Grid.RowDefinitions>
-                <RowDefinition Height="0.60*" />
-                <RowDefinition Height="0.40*" />
+                <RowDefinition Height="0.55*" />
+                <RowDefinition Height="0.45*" />
             </Grid.RowDefinitions>
             <Grid Grid.Row="0">
                 <TabControl Margin="0,10,0,0">
@@ -35,6 +35,8 @@
                             <TextBox x:Name="txtYear" HorizontalAlignment="Left" Height="23" Margin="514,58,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="87"/>
 
                             <Button x:Name="btnImport" Content="Import" HorizontalAlignment="Left" Margin="503,143,0,0" VerticalAlignment="Top" Width="87" Click="btnImport_Click"/>
+
+                            <Button Content="Debug" Name="__btnDebug" Margin="167,111,357,38" Click="__btnDebug_Click"/>
                         </Grid>
                     </TabItem>
                     <TabItem Header="TV Shows" />
@@ -43,16 +45,8 @@
                 </TabControl>
             </Grid>
 
-            <GroupBox Grid.Row="1" Header="Output" HorizontalAlignment="Left" Height="135" Margin="10,10,0,0" VerticalAlignment="Top" Width="590">
-                <ScrollViewer Name="svOutput">
-                    <TextBox Name="txtOutput" 
-                         ScrollViewer.HorizontalScrollBarVisibility="Visible"
-                         HorizontalAlignment="Left" 
-                         VerticalAlignment="Top" 
-                         Height="103" 
-                         Width="568" 
-                         TextWrapping="Wrap"/>
-                </ScrollViewer>
+            <GroupBox Grid.Row="1" Header="Output" HorizontalAlignment="Left" Height="164" Margin="10,10,0,0" VerticalAlignment="Top" Width="590">
+                <TextBox Name="txtOutput" IsReadOnly="True" TextWrapping="Wrap" Margin="10,5,8,4"/>
             </GroupBox>
 
         </Grid>

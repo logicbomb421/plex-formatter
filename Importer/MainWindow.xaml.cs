@@ -46,6 +46,7 @@ namespace Importer
         private void Out(string message)
         {
             message = $"{DateTime.Now.ToString("HH:mm:ss.fff")} | {message}";
+            //TODO need to clean up the word wrap somehow
             lock (_locker)
                 _sbOutput.AppendLine(message);
         }
@@ -59,14 +60,15 @@ namespace Importer
                     Dispatcher.Invoke(() =>
                             {
                                 txtOutput.Text += _sbOutput.ToString();
-                                svOutput.ScrollToEnd();
+                                txtOutput.ScrollToEnd();
                             });
-                    _sbOutput.Clear(); 
+                    _sbOutput.Clear();
                 }
             }
         }
         #endregion
 
+        #region Movie
         private void btnChooseFile_Click(object sender, RoutedEventArgs e)
         {
             var dlg = new Microsoft.Win32.OpenFileDialog();
@@ -129,7 +131,8 @@ namespace Importer
                 Out("Successful import!");
             else
                 Out("Unsuccessful import.");
-        }
+        } 
+        #endregion
 
         #region Menu Commands
         private void RefreshPlexLibrary_Click(object sender, RoutedEventArgs e)
@@ -139,6 +142,32 @@ namespace Importer
         private void Settings_Click(object sender, RoutedEventArgs e)
         {
             new SettingsWindow().Show();
+        }
+        #endregion
+
+        #region Debug
+        private void __btnDebug_Click(object sender, RoutedEventArgs e)
+        {
+            Task.Factory.StartNew(__writeTextToOutput);
+        }
+        private void __writeTextToOutput()
+        {
+            var strings = new[] {
+                "Validating...",
+                $"Error validating: Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+                "Formatting...",
+                $"Error formatting: Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+                "Importing...",
+                $"Error importing:  Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+                "Successful import!",
+                "Unsuccessful import.",
+            };
+            
+            foreach (var str in strings)
+            {
+                Out(str);
+                System.Threading.Thread.Sleep(300);
+            }
         }
         #endregion
     }
