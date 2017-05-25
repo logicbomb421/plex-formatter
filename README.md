@@ -1,4 +1,4 @@
-#Plex Media Formatter
+# Plex Media Formatter
 
 ###### A simple media preparation utility for use with Plex Media Server.
 
