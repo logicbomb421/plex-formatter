@@ -33,7 +33,9 @@ namespace Importer
         {
             InitializeComponent();
 
+            _bwImport.WorkerReportsProgress = true;
             _bwImport.DoWork += bwImport_DoWork;
+            _bwImport.ProgressChanged += bwImport_ProgressChanged;
             _bwImport.RunWorkerCompleted += bwImport_RunWorkerCompleted;
             _tmOutputWriter.Interval = 250;
 
@@ -43,12 +45,40 @@ namespace Importer
         }
 
         #region Output
-        private void Out(string message)
+        //private void Out(string message, bool appendCurrentLine = false)
+        //{
+        //    //TODO need to clean up the word wrap somehow
+        //    if (appendCurrentLine)
+        //    {
+        //        lock (_locker)
+        //            _sbOutput.Append(message);
+        //    }
+        //    else
+        //    {
+        //        message = $"{DateTime.Now.ToString("HH:mm:ss.fff")} | {message}";
+        //        lock (_locker)
+        //            _sbOutput.AppendLine(message);
+        //    }
+
+        //}
+
+        private void Out(string message, bool newline = true, bool format = true)
         {
-            message = $"{DateTime.Now.ToString("HH:mm:ss.fff")} | {message}";
             //TODO need to clean up the word wrap somehow
-            lock (_locker)
-                _sbOutput.AppendLine(message);
+            if (format)
+                message = $"{DateTime.Now.ToString("HH:mm:ss.fff")} | {message}";
+
+            if (newline)
+            {
+                lock (_locker)
+                    _sbOutput.AppendLine(message);
+            }
+            else
+            {
+                lock (_locker)
+                    _sbOutput.Append(message);
+            }
+            
         }
 
         private void tmOutputWriter_Elapsed(object sender, ElapsedEventArgs e)
@@ -71,11 +101,19 @@ namespace Importer
         #region Movie
         private void btnChooseFile_Click(object sender, RoutedEventArgs e)
         {
-            var dlg = new Microsoft.Win32.OpenFileDialog();
-            dlg.Filter = "MP4 Files (*.mp4)|*.mp4|MKV Files (*.mkv)|*.mkv";
-
+            var dlg = new Microsoft.Win32.OpenFileDialog()
+            {
+                Filter = "MP4 Files (*.mp4)|*.mp4|MKV Files (*.mkv)|*.mkv"
+            };
             if (dlg.ShowDialog() ?? false)
                 txtFile.Text = dlg.FileName;
+        }
+
+        private void btnClear_Click(object sender, RoutedEventArgs e)
+        {
+            txtFile.Text = string.Empty;
+            txtTitle.Text = string.Empty;
+            txtYear.Text = string.Empty;
         }
 
         private void btnImport_Click(object sender, RoutedEventArgs e)
@@ -83,14 +121,22 @@ namespace Importer
             if (!_bwImport.IsBusy)
             {
                 btnImport.IsEnabled = false;
-                _bwImport.RunWorkerAsync(new { File = txtFile.Text, Title = txtTitle.Text, Year = txtYear.Text });
+                _bwImport.RunWorkerAsync(
+                    new
+                    {
+                        File = txtFile.Text,
+                        Title = txtTitle.Text,
+                        DeleteSourceFiles = Settings.DeleteSourceFiles,
+                        PlexRoot = Settings.MovieRoot,
+                        Year = txtYear.Text
+                    });
             }
         }
 
         private void bwImport_DoWork(object sender, DoWorkEventArgs e)
         {
             dynamic args = e.Argument;
-            var formatter = new MovieFormatter(args.File, args.Title, args.Year);
+            var formatter = new MovieFormatter(_bwImport, args.File, args.Title, args.DeleteSourceFiles, args.PlexRoot, args.Year);
 
             Out("Validating...");
             var valid = formatter.Validate();
@@ -123,6 +169,18 @@ namespace Importer
 
             e.Result = true;
         }
+        private void bwImport_ProgressChanged(object sender, ProgressChangedEventArgs args)
+        {
+            if (args.UserState.GetType() == typeof(CopyUpdate))
+            {
+                var cu = (CopyUpdate)args.UserState;
+                Out(cu.PercentComplete == 100 ? cu.PercentComplete.ToString() : $"{cu.PercentComplete}...", cu.PercentComplete == 100, cu.IsFirstUpdate);
+            }
+            else
+            {
+                Out((string)args.UserState);
+            }
+        }
         private void bwImport_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
             //TODO should use mvvm binding for this
@@ -131,13 +189,39 @@ namespace Importer
                 Out("Successful import!");
             else
                 Out("Unsuccessful import.");
-        } 
+        }
         #endregion
 
         #region Menu Commands
         private void RefreshPlexLibrary_Click(object sender, RoutedEventArgs e)
         {
-
+            Out("Refreshing Plex library...");
+            Task.Factory.StartNew(() =>
+            {
+                try
+                {
+                    using (var process = new System.Diagnostics.Process())
+                    {
+                        process.StartInfo = new System.Diagnostics.ProcessStartInfo(@"C:\Program Files (x86)\Plex\Plex Media Server\Plex Media Scanner.exe")
+                        {
+                            Arguments = "--scan",
+                            RedirectStandardOutput = true,
+                            UseShellExecute = false,
+                            WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden,
+                            CreateNoWindow = false
+                        };
+                        process.Start();
+                        //TODO isnt working as expected
+                        string line = string.Empty;
+                        while (!string.IsNullOrEmpty(line = process.StandardOutput.ReadLine()))
+                            Out(line);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Out($"Unable to refresh library. The error was: {ex.Message}");
+                }
+            });
         }
         private void Settings_Click(object sender, RoutedEventArgs e)
         {
@@ -148,7 +232,19 @@ namespace Importer
         #region Debug
         private void __btnDebug_Click(object sender, RoutedEventArgs e)
         {
-            Task.Factory.StartNew(__writeTextToOutput);
+            //Task.Factory.StartNew(__writeTextToOutput);
+            Task.Factory.StartNew(__writeFilePercentToOutput);
+        }
+        private void __writeFilePercentToOutput()
+        {
+            Out("Importing...");
+            System.Threading.Thread.Sleep(300);
+            for (int i = 0, percent = 0; i <= 20; ++i, percent += 5)
+            {
+                Out(percent == 100 ? percent.ToString() : $"{percent}...", percent == 100, percent == 0);
+                System.Threading.Thread.Sleep(300);
+            }
+            Out("Successful import!");
         }
         private void __writeTextToOutput()
         {
@@ -162,7 +258,7 @@ namespace Importer
                 "Successful import!",
                 "Unsuccessful import.",
             };
-            
+
             foreach (var str in strings)
             {
                 Out(str);

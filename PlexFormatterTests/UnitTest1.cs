@@ -17,10 +17,16 @@ namespace PlexFormatterTests
         [TestMethod]
         public void RunMovie()
         {
-            var mov = new MovieFormatter(@"C:\Users\Michael\Downloads\Rogue One (2016) [1080p] [YTS.AG]\", "Rogue One");
-            mov.Validate();
-            mov.Format();
-            mov.Import();
+            //var mov = new MovieFormatter(@"C:\Users\Michael\Downloads\Rogue One (2016) [1080p] [YTS.AG]\", "Rogue One");
+            //mov.Validate();
+            //mov.Format();
+            //mov.Import();
+        }
+
+        [TestMethod]
+        public void MyTestMethod()
+        {
+
         }
     }
 }

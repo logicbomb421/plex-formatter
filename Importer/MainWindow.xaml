@@ -34,6 +34,7 @@
                             <Label Content="Year" HorizontalAlignment="Left" Height="26" Margin="469,55,0,0" VerticalAlignment="Top" Width="40"/>
                             <TextBox x:Name="txtYear" HorizontalAlignment="Left" Height="23" Margin="514,58,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="87"/>
 
+                            <Button x:Name="btnClear" Content="Clear" HorizontalAlignment="Left" Margin="401,143,0,0" VerticalAlignment="Top" Width="87" Click="btnClear_Click"/>
                             <Button x:Name="btnImport" Content="Import" HorizontalAlignment="Left" Margin="503,143,0,0" VerticalAlignment="Top" Width="87" Click="btnImport_Click"/>
 
                             <Button Content="Debug" Name="__btnDebug" Margin="167,111,357,38" Click="__btnDebug_Click"/>

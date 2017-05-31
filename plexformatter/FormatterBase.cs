@@ -1,11 +1,15 @@
 ﻿using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.Text.RegularExpressions;
 
 namespace PlexFormatter
 {
-    public abstract class FormatterBase
+    public abstract class FormatterBase : IFormatter
     {
+        protected bool _deleteSourceFiles = false;
+        protected BackgroundWorker _worker = null;
+
         public abstract string PlexRootDirectory { get; set; }
         //public string Title { get; set; }
         public List<PlexMedia> Media { get; set; } = new List<PlexMedia>();

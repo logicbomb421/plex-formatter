@@ -27,10 +27,11 @@
         <GroupBox Header="Other" HorizontalAlignment="Left" Height="100" VerticalAlignment="Top" Width="272" Margin="10,159,0,0">
             <Grid>
                 <CheckBox Name="chkRefreshOnImport" Content="Refresh on import" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,10,0,0"/>
+                <CheckBox Name="chkDeleteSource" Content="Delete source files" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,30,0,0"/>
             </Grid>
         </GroupBox>
 
-        <Button Content="Save" HorizontalAlignment="Left" Margin="127,321,0,0" VerticalAlignment="Top" Width="75"/>
-        <Button Content="Cancel" HorizontalAlignment="Left" Margin="207,321,0,0" VerticalAlignment="Top" Width="75"/>
+        <Button Name="btnSave" Content="Save" HorizontalAlignment="Left" Margin="127,321,0,0" VerticalAlignment="Top" Width="75" Click="btnSave_Click"/>
+        <Button Name="btnCancel" Content="Cancel" HorizontalAlignment="Left" Margin="207,321,0,0" VerticalAlignment="Top" Width="75" Click="btnCancel_Click"/>
     </Grid>
 </Window>

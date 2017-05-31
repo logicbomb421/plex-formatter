@@ -42,8 +42,10 @@
   <ItemGroup>
     <Compile Include="Defaults.cs" />
     <Compile Include="FormatterBase.cs" />
+    <Compile Include="IFormatter.cs" />
     <Compile Include="MovieFormatter.cs" />
     <Compile Include="PlexMedia.cs" />
+    <Compile Include="ProgressReportingFileCopier.cs" />
     <Compile Include="TvFormatter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Result.cs" />

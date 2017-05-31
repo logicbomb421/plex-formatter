@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -11,6 +12,7 @@ namespace PlexFormatter
 {
     public class MovieFormatter : FormatterBase
     {
+        private static Regex _rgx_yearKey = null;
         private Regex rgx_yearKey
         {
             get
@@ -24,7 +26,6 @@ namespace PlexFormatter
                 return _rgx_yearKey;
             }
         }
-        private Regex _rgx_yearKey = null;
 
         private string _plexRootDirectory = null;
         public override string PlexRootDirectory
@@ -40,11 +41,18 @@ namespace PlexFormatter
 
         public string Year { get; set; } = null;
 
-        public MovieFormatter(string source, string movieTitle, string year = null, string plexRootDirectory = null)
+        public MovieFormatter(BackgroundWorker worker, string source, string movieTitle, bool deleteSourceFiles, string plexRootDirectory, string year = null)
+            : this(source, movieTitle, deleteSourceFiles, plexRootDirectory, year)
+        {
+            _worker = worker;
+        }
+
+        public MovieFormatter(string source, string movieTitle, bool deleteSourceFiles, string plexRootDirectory, string year = null)
         {
             if (!Directory.Exists(source) && !File.Exists(source))
                 throw new DirectoryNotFoundException($"Could not find source directory: {source}"); //TODO custom exception
 
+            _deleteSourceFiles = deleteSourceFiles;
             _plexRootDirectory = PlexRootDirectory;
             Year = year;
 
@@ -74,6 +82,7 @@ namespace PlexFormatter
                 }
                 else
                 {
+                    _worker.ReportProgress(0, "No year provided, searching filename...");
                     //TODO return something more informative in case the implementer wants to prevent choices of the correct year to the user.
                     var matches = rgx_yearKey.Matches(movie.SourceFile.Name);
                     if (matches.Count == 0)
@@ -81,7 +90,10 @@ namespace PlexFormatter
                     else if (matches.Count > 1)
                         log.Add($"Found multiple year identifiers in '{movie.SourceFile.Name}'.");
                     else
-                        movie.Year = matches[0].Value; 
+                    {
+                        movie.Year = matches[0].Value;
+                        _worker.ReportProgress(0, $"Found '{movie.Year}'");
+                    }
                 }
             }
 
@@ -146,16 +158,52 @@ namespace PlexFormatter
             {
                 try
                 {
+                    _worker.ReportProgress(0, $"Creating directory for {movie.Title}");
                     Directory.CreateDirectory(movie.DestinationPath.Substring(0, movie.DestinationPath.LastIndexOf('\\')));
-                    File.Copy(movie.SourceFile.FullName, movie.DestinationPath);
-                    //movie.SourceFile.CopyTo(movie.DestinationPath);
+                }
+                catch (Exception ex)
+                {
+                    return result.Finalize(PlexFormatterResult.ResultStatus.Failed, $"Unable to create drirectory for file(s). The error was: {ex.Message}");
+                }
+
+                try
+                {
+                    _worker.ReportProgress(0, $"Copying source file for {movie.Title}");
+                    var copier = new ProgressReportingFileCopier(movie.SourceFile.FullName, movie.DestinationPath);
+                    copier.OnUpdate += (i) => _worker.ReportProgress(0, new CopyUpdate(i, i == 0));
+                    copier.OnComplete += () => _worker.ReportProgress(0, "Complete!");
+                    copier.Copy();
                 }
                 catch (Exception ex)
                 {
                     return result.Finalize(PlexFormatterResult.ResultStatus.Failed, $"Unable to copy file. The error was: {ex.Message}");
                 }
+
+                if (_deleteSourceFiles)
+                {
+                    try
+                    {
+                        _worker.ReportProgress(0, $"Deleting source file for {movie.Title}");
+                        movie.SourceFile.Delete();
+                    }
+                    catch (Exception ex)
+                    {
+                        _worker.ReportProgress(0, $"Unable to delete source file. The error was: {ex.Message}");
+                    }
+                }
             }
             return result.Finalize(PlexFormatterResult.ResultStatus.Success);
         }
+    }
+}
+
+public struct CopyUpdate
+{
+    public int PercentComplete;
+    public bool IsFirstUpdate;
+    public CopyUpdate(int percent, bool isFirstUpdate)
+    {
+        PercentComplete = percent;
+        IsFirstUpdate = isFirstUpdate;
     }
 }
