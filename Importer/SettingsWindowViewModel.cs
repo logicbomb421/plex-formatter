@@ -6,7 +6,7 @@ using System.Configuration;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using static Importer.Settings.AppSettingKeys;
+using static Importer.SettingsWindowViewModel.AppSettingKeys;
 
 namespace Importer
 {
@@ -21,6 +21,7 @@ namespace Importer
             public const string MUSIC_ROOT = "MusicRoot";
             public const string REFRESH_ON_IMPORT = "RefreshOnImport";
             public const string DELETE_SOURCE_FILES = "DeleteSourceFiles";
+            public const string SHOW_DEBUG_PANEL = "ShowDebugPanel";
         }
 
         private Configuration _config = null;

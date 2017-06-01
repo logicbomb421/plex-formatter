@@ -7,6 +7,9 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="456.581" Width="627" 
         ResizeMode="NoResize">
+    <Window.DataContext>
+        <local:MainWindowViewModel />
+    </Window.DataContext>
     <DockPanel>
         <Menu DockPanel.Dock="Top">
             <MenuItem Header="_File">
@@ -40,9 +43,9 @@
                             <Button Content="Debug" Name="__btnDebug" Margin="167,111,357,38" Click="__btnDebug_Click"/>
                         </Grid>
                     </TabItem>
-                    <TabItem Header="TV Shows" />
-                    <TabItem Header="Pictures" />
-                    <TabItem Header="Music" />
+                    <TabItem Header="TV Shows" IsEnabled="False" />
+                    <TabItem Header="Pictures" IsEnabled="False" />
+                    <TabItem Header="Music" IsEnabled="False" Visibility="{Binding Path=ShowDebugPanel}" />
                 </TabControl>
             </Grid>
 

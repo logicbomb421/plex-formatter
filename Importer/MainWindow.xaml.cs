@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Configuration;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -15,6 +16,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using static Importer.SettingsWindowViewModel.AppSettingKeys;
 
 namespace Importer
 {
@@ -126,8 +128,8 @@ namespace Importer
                     {
                         File = txtFile.Text,
                         Title = txtTitle.Text,
-                        DeleteSourceFiles = Settings.DeleteSourceFiles,
-                        PlexRoot = Settings.MovieRoot,
+                        DeleteSourceFiles = bool.TryParse(ConfigurationManager.AppSettings[DELETE_SOURCE_FILES], out bool bb) ? bb : Defaults.PLEX_DELETE_SOURCE_FILES,
+                        PlexRoot = ConfigurationManager.AppSettings[MOVIE_ROOT],
                         Year = txtYear.Text
                     });
             }
