@@ -1,5 +1,4 @@
 ﻿using System.Windows;
-using static Importer.Settings;
 
 namespace Importer
 {
@@ -8,30 +7,24 @@ namespace Importer
     /// </summary>
     public partial class SettingsWindow : Window
     {
+        SettingsWindowViewModel _viewModel;
+
         public SettingsWindow()
         {
             InitializeComponent();
-
-            txtMovies.Text = MovieRoot;
-            txtTvShows.Text = TVRoot;
-            txtPhotos.Text = PhotoRoot;
-            txtMusic.Text = MusicRoot;
-            chkRefreshOnImport.IsChecked = RefreshOnImport;
-            chkDeleteSource.IsChecked = DeleteSourceFiles;
+            DataContext = _viewModel = new SettingsWindowViewModel();
         }
 
         private void btnSave_Click(object sender, RoutedEventArgs e)
         {
-            MovieRoot = txtMovies.Text;
-            TVRoot = txtTvShows.Text;
-            PhotoRoot = txtPhotos.Text;
-            MusicRoot = txtMusic.Text;
-            RefreshOnImport = chkRefreshOnImport.IsChecked.GetValueOrDefault(false);
-            DeleteSourceFiles = chkDeleteSource.IsChecked.GetValueOrDefault(false);
+            _viewModel.SaveSettingsToDisk();
+            MessageBox.Show("Settings saved successfully!", "Success!", MessageBoxButton.OK);
         }
 
-        private void btnCancel_Click(object sender, RoutedEventArgs e)
+        private void btnClose_Click(object sender, RoutedEventArgs e)
         {
+            if (_viewModel.IsModified && MessageBox.Show("There are unsaved changes, are you shure you wish to close?", "Save Changes?", MessageBoxButton.YesNo) == MessageBoxResult.No)
+                return;
             Close();
         }
     }
