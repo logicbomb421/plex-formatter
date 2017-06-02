@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Windows.Input;
 
-namespace Importer
+namespace Importer.Utilities
 {
     //minimal implementation of Josh Smith's RelayCommand
     //https://msdn.microsoft.com/en-us/magazine/dd419663.aspx

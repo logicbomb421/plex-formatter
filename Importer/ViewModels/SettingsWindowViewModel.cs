@@ -1,26 +1,16 @@
-﻿using PlexFormatter;
+﻿using Importer.Utilities;
+using PlexFormatter;
 using System.ComponentModel;
 using System.Configuration;
 using System.Windows;
 using System.Windows.Input;
-using static Importer.SettingsWindowViewModel.AppSettingKeys;
+using static Importer.Utilities.Constants.AppSettingKeys;
 
-namespace Importer
+namespace Importer.ViewModels
 {
-    public class SettingsWindowViewModel : INotifyPropertyChanged
+    public class SettingsWindowViewModel : ViewModelBase
     {
         #region ViewModel
-        public class AppSettingKeys
-        {
-            public const string MOVIE_ROOT = "MovieRoot";
-            public const string TV_ROOT = "TVRoot";
-            public const string PHOTO_ROOT = "PhotoRoot";
-            public const string MUSIC_ROOT = "MusicRoot";
-            public const string REFRESH_ON_IMPORT = "RefreshOnImport";
-            public const string DELETE_SOURCE_FILES = "DeleteSourceFiles";
-            public const string SHOW_DEBUG_PANEL = "ShowDebugPanel";
-        }
-
         private Window _parentWindow;
         private Configuration _config = null;
         private ICommand _saveToDisk;
@@ -28,9 +18,6 @@ namespace Importer
 
         public ICommand SaveToDisk => _saveToDisk != null ? _saveToDisk : _saveToDisk = new RelayCommand(o => IsModified, o => SaveSettingsToDisk());
         public ICommand Close => _cancel != null ? _cancel : _cancel = new RelayCommand(o => TryCloseWindow());
-        public bool IsModified { get; private set; }
-
-        public event PropertyChangedEventHandler PropertyChanged;
 
         public SettingsWindowViewModel(Window window)
         {
@@ -73,7 +60,7 @@ namespace Importer
             set
             {
                 _movieRoot = value;
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(MovieRoot)));
+                OnPropertyChanged(nameof(MovieRoot));
             }
         }
 
@@ -84,7 +71,7 @@ namespace Importer
             set
             {
                 _tvRoot = value;
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(TVRoot)));
+                OnPropertyChanged(nameof(TVRoot));
             }
         }
 
@@ -95,7 +82,7 @@ namespace Importer
             set
             {
                 _photoRoot = value;
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(PhotoRoot)));
+                OnPropertyChanged(nameof(PhotoRoot));
             }
         }
 
@@ -106,7 +93,7 @@ namespace Importer
             set
             {
                 _musicRoot = value;
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(MusicRoot)));
+                OnPropertyChanged(nameof(MusicRoot));
             }
         }
 
@@ -122,7 +109,7 @@ namespace Importer
             set
             {
                 _refreshOnImport = value;
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(RefreshOnImport)));
+                OnPropertyChanged(nameof(RefreshOnImport));
             }
         }
 
@@ -138,7 +125,7 @@ namespace Importer
             set
             {
                 _deleteSourceFiles = value;
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(DeleteSourceFiles)));
+                OnPropertyChanged(nameof(DeleteSourceFiles));
             }
         }
         #endregion

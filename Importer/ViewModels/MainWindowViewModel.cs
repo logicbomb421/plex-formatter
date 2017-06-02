@@ -1,15 +1,20 @@
-﻿using System;
+﻿using Importer.ViewModels.Tabs;
+using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using static Importer.SettingsWindowViewModel.AppSettingKeys;
+using static Importer.Utilities.Constants.AppSettingKeys;
 
-namespace Importer
+namespace Importer.ViewModels
 {
-    public class MainWindowViewModel
+    public class MainWindowViewModel : ViewModelBase
     {
+
+        private MovieViewModel _movie;
+        public MovieViewModel Movie => _movie != null ? _movie : _movie = new MovieViewModel();
+
         private string _tiDebugIsVisible = null;
         public string ShowDebugPanel
         {

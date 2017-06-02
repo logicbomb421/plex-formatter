@@ -1,4 +1,5 @@
-﻿using PlexFormatter;
+﻿using Importer.ViewModels;
+using PlexFormatter;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -16,7 +17,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
-using static Importer.SettingsWindowViewModel.AppSettingKeys;
+using static Importer.Utilities.Constants.AppSettingKeys;
 
 namespace Importer
 {
@@ -34,6 +35,7 @@ namespace Importer
         public MainWindow()
         {
             InitializeComponent();
+            DataContext = new MainWindowViewModel();
 
             _bwImport.WorkerReportsProgress = true;
             _bwImport.DoWork += bwImport_DoWork;
