@@ -24,8 +24,5 @@ namespace Importer
                 return _tiDebugIsVisible;
             }
         }
-
-
-        public bool MyProperty { get; set; }
     }
 }

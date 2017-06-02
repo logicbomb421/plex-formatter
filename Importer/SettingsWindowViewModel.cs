@@ -1,18 +1,15 @@
 ﻿using PlexFormatter;
-using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Configuration;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Input;
 using static Importer.SettingsWindowViewModel.AppSettingKeys;
 
 namespace Importer
 {
-    public class SettingsWindowViewModel
+    public class SettingsWindowViewModel : INotifyPropertyChanged
     {
-        #region Meta
+        #region ViewModel
         public class AppSettingKeys
         {
             public const string MOVIE_ROOT = "MovieRoot";
@@ -24,15 +21,22 @@ namespace Importer
             public const string SHOW_DEBUG_PANEL = "ShowDebugPanel";
         }
 
+        private Window _parentWindow;
         private Configuration _config = null;
+        private ICommand _saveToDisk;
+        private ICommand _cancel;
 
-        public event PropertyChangedEventHandler OnPropertyChanged;
+        public ICommand SaveToDisk => _saveToDisk != null ? _saveToDisk : _saveToDisk = new RelayCommand(o => IsModified, o => SaveSettingsToDisk());
+        public ICommand Close => _cancel != null ? _cancel : _cancel = new RelayCommand(o => TryCloseWindow());
         public bool IsModified { get; private set; }
 
-        public SettingsWindowViewModel()
-        {
-            _config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
+        public event PropertyChangedEventHandler PropertyChanged;
 
+        public SettingsWindowViewModel(Window window)
+        {
+            _parentWindow = window;
+            _config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
+            PropertyChanged += (o, args) => IsModified = true;
         }
 
         public void SaveSettingsToDisk()
@@ -50,6 +54,14 @@ namespace Importer
             _config.Save(ConfigurationSaveMode.Modified);
             ConfigurationManager.RefreshSection("appSettings");
             IsModified = false;
+            MessageBox.Show("Settings saved successfully!", "Success!", MessageBoxButton.OK);
+        }
+
+        public void TryCloseWindow()
+        {
+            if (IsModified && MessageBox.Show("There are unsaved changes, are you shure you wish to close?", "Save Changes?", MessageBoxButton.YesNo) == MessageBoxResult.No)
+                return;
+            _parentWindow.Close();
         }
         #endregion
 
@@ -61,7 +73,7 @@ namespace Importer
             set
             {
                 _movieRoot = value;
-                IsModified = true;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(MovieRoot)));
             }
         }
 
@@ -72,7 +84,7 @@ namespace Importer
             set
             {
                 _tvRoot = value;
-                IsModified = true;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(TVRoot)));
             }
         }
 
@@ -83,7 +95,7 @@ namespace Importer
             set
             {
                 _photoRoot = value;
-                IsModified = true;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(PhotoRoot)));
             }
         }
 
@@ -94,7 +106,7 @@ namespace Importer
             set
             {
                 _musicRoot = value;
-                IsModified = true;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(MusicRoot)));
             }
         }
 
@@ -110,7 +122,7 @@ namespace Importer
             set
             {
                 _refreshOnImport = value;
-                IsModified = true;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(RefreshOnImport)));
             }
         }
 
@@ -126,7 +138,7 @@ namespace Importer
             set
             {
                 _deleteSourceFiles = value;
-                IsModified = true;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(DeleteSourceFiles)));
             }
         }
         #endregion

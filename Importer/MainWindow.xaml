@@ -45,7 +45,12 @@
                     </TabItem>
                     <TabItem Header="TV Shows" IsEnabled="False" />
                     <TabItem Header="Pictures" IsEnabled="False" />
-                    <TabItem Header="Music" IsEnabled="False" Visibility="{Binding Path=ShowDebugPanel}" />
+                    <TabItem Header="Music" IsEnabled="False" />
+                    <TabItem Header="Debug" >
+                        <Grid>
+                            
+                        </Grid>
+                    </TabItem>
                 </TabControl>
             </Grid>
 
