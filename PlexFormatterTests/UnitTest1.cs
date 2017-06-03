@@ -1,6 +1,7 @@
 ﻿using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using PlexFormatter;
+using PlexFormatter.Formatters;
 
 namespace PlexFormatterTests
 {

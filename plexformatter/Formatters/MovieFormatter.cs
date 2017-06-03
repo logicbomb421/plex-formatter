@@ -8,7 +8,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using static PlexFormatter.Defaults;
 
-namespace PlexFormatter
+namespace PlexFormatter.Formatters
 {
     public class MovieFormatter : FormatterBase
     {
@@ -153,6 +153,13 @@ namespace PlexFormatter
 
         public override PlexFormatterResult Import()
         {
+            if (!IsFormatted)
+            {
+                var fr = Format();
+                if (fr.Status != PlexFormatterResult.ResultStatus.Success)
+                    return fr;
+            }
+
             var result = new PlexFormatterResult();
             foreach (var movie in Media)
             {
