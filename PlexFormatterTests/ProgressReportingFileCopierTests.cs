@@ -14,26 +14,26 @@ namespace PlexFormatterTests
     [TestClass]
     public class ProgressReportingFileCopierTests
     {
-        private string _sourceFile;
-        private string _destFile;
+            private string _sourceFile;
+            private string _destFile;
 
-        const int TEST_FILE_SIZE = (1024 * 1024) * 50;
+            const int TEST_FILE_SIZE = (1024 * 1024) * 50;
 
-        [TestInitialize]
-        public void Init()
-        {
-            var source = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
-            File.WriteAllBytes(source, new byte[TEST_FILE_SIZE]);
-            _sourceFile = source;
-            _destFile = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
-        }
+            [TestInitialize]
+            public void Init()
+            {
+                var source = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+                File.WriteAllBytes(source, new byte[TEST_FILE_SIZE]);
+                _sourceFile = source;
+                _destFile = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+            }
 
-        [TestCleanup]
-        public void Cleanup()
-        {
-            File.Delete(_sourceFile);
-            File.Delete(_destFile);
-        }
+            [TestCleanup]
+            public void Cleanup()
+            {
+                File.Delete(_sourceFile);
+                File.Delete(_destFile);
+            }
 
         [TestMethod]
         public void CopyFile()

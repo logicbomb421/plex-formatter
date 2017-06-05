@@ -57,7 +57,7 @@ namespace PlexFormatter.Formatters
             _worker = worker;
         }
 
-        public MovieFormatter(string source, string movieTitle, bool deleteSourceFiles, string plexRootDirectory, string year = null)
+        public MovieFormatter(string source, string movieTitle, bool deleteSourceFiles, string plexRootDirectory, string year = null) //TODO year shouldnt be string
         {
             if (/*!Directory.Exists(source) && */!File.Exists(source))
                 throw new FileNotFoundException($"Could not find source file: {source}"); //TODO custom exception
@@ -86,13 +86,20 @@ namespace PlexFormatter.Formatters
             var log = new List<string>();
             //foreach (var movie in Media)
             //{
+
+            if (string.IsNullOrEmpty(Movie.Title))
+            {
+                log.Add("Could not find movie title.");
+            }
+
+                //TODO should we still validate against the regex range if they supply the year?
                 if (!string.IsNullOrEmpty(Year))
                 {
                     Movie.Year = Year;
                 }
                 else
                 {
-                    _worker.ReportProgress(0, "No year provided, searching filename...");
+                    _worker?.ReportProgress(0, "No year provided, searching filename...");
                     //TODO return something more informative in case the implementer wants to prevent choices of the correct year to the user.
                     var matches = rgx_yearKey.Matches(Movie.SourceFile.Name);
                     if (matches.Count == 0)
@@ -102,7 +109,7 @@ namespace PlexFormatter.Formatters
                     else
                     {
                         Movie.Year = matches[0].Value;
-                        _worker.ReportProgress(0, $"Found '{Movie.Year}'");
+                        _worker?.ReportProgress(0, $"Found '{Movie.Year}'");
                     }
                 }
             //}
@@ -112,10 +119,11 @@ namespace PlexFormatter.Formatters
             {
                 result.Status = PlexFormatterResult.ResultStatus.Failed;
                 result.Log.AddRange(log);
+                return result;
             }
 
             IsValidated = true;
-            return result;
+            return result.Finalize(PlexFormatterResult.ResultStatus.Success);
         }
 
         public override PlexFormatterResult Format()
@@ -175,7 +183,7 @@ namespace PlexFormatter.Formatters
             //{
                 try
                 {
-                    _worker.ReportProgress(0, $"Creating directory for {Movie.Title}");
+                    _worker?.ReportProgress(0, $"Creating directory for {Movie.Title}");
                     Directory.CreateDirectory(Movie.DestinationPath.Substring(0, Movie.DestinationPath.LastIndexOf('\\')));
                 }
                 catch (Exception ex)
@@ -185,10 +193,10 @@ namespace PlexFormatter.Formatters
 
                 try
                 {
-                    _worker.ReportProgress(0, $"Copying source file for {Movie.Title}");
+                    _worker?.ReportProgress(0, $"Copying source file for {Movie.Title}");
                     var copier = new ProgressReportingFileCopier(Movie.SourceFile.FullName, Movie.DestinationPath);
-                    copier.OnUpdate += (i) => _worker.ReportProgress(0, new CopyUpdate(i, i == 0));
-                    copier.OnComplete += () => _worker.ReportProgress(0, "Complete!");
+                    copier.OnUpdate += (i) => _worker?.ReportProgress(0, new CopyUpdate(i, i == 0));
+                    copier.OnComplete += () => _worker?.ReportProgress(0, "Complete!");
                     copier.Copy();
                 }
                 catch (Exception ex)
@@ -200,12 +208,12 @@ namespace PlexFormatter.Formatters
                 {
                     try
                     {
-                        _worker.ReportProgress(0, $"Deleting source file for {Movie.Title}");
+                        _worker?.ReportProgress(0, $"Deleting source file for {Movie.Title}");
                         Movie.SourceFile.Delete();
                     }
                     catch (Exception ex)
                     {
-                        _worker.ReportProgress(0, $"Unable to delete source file. The error was: {ex.Message}");
+                        _worker?.ReportProgress(0, $"Unable to delete source file. The error was: {ex.Message}");
                     }
                 }
             //}
