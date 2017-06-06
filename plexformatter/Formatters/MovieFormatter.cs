@@ -39,7 +39,7 @@ namespace PlexFormatter.Formatters
             set { _plexRootDirectory = value; }
         }
 
-        public string Year { get; set; } = null;
+        public int? Year { get; set; } = null;
 
         public PlexMedia Movie
         {
@@ -51,13 +51,13 @@ namespace PlexFormatter.Formatters
             }
         }
 
-        public MovieFormatter(BackgroundWorker worker, string source, string movieTitle, bool deleteSourceFiles, string plexRootDirectory, string year = null)
+        public MovieFormatter(BackgroundWorker worker, string source, string movieTitle, bool deleteSourceFiles, string plexRootDirectory, int? year = null)
             : this(source, movieTitle, deleteSourceFiles, plexRootDirectory, year)
         {
             _worker = worker;
         }
 
-        public MovieFormatter(string source, string movieTitle, bool deleteSourceFiles, string plexRootDirectory, string year = null) //TODO year shouldnt be string
+        public MovieFormatter(string source, string movieTitle, bool deleteSourceFiles, string plexRootDirectory, int? year = null) //TODO year shouldnt be string
         {
             if (/*!Directory.Exists(source) && */!File.Exists(source))
                 throw new FileNotFoundException($"Could not find source file: {source}"); //TODO custom exception
@@ -93,9 +93,9 @@ namespace PlexFormatter.Formatters
             }
 
                 //TODO should we still validate against the regex range if they supply the year?
-                if (!string.IsNullOrEmpty(Year))
+                if (Year.HasValue)
                 {
-                    Movie.Year = Year;
+                    Movie.Year = Year.Value;
                 }
                 else
                 {
@@ -108,7 +108,12 @@ namespace PlexFormatter.Formatters
                         log.Add($"Found multiple year identifiers in '{Movie.SourceFile.Name}'.");
                     else
                     {
-                        Movie.Year = matches[0].Value;
+                        if (int.TryParse(matches[0].Value, out int i))
+                        {
+                            Movie.Year = i;
+                            Year = i;
+                        }
+                        
                         _worker?.ReportProgress(0, $"Found '{Movie.Year}'");
                     }
                 }

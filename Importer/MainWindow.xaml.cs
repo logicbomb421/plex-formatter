@@ -141,7 +141,7 @@ namespace Importer
         private void bwImport_DoWork(object sender, DoWorkEventArgs e)
         {
             dynamic args = e.Argument;
-            var formatter = new MovieFormatter(_bwImport, args.File, args.Title, args.DeleteSourceFiles, args.PlexRoot, args.Year);
+            var formatter = new MovieFormatter(_bwImport, args.File, args.Title, args.DeleteSourceFiles, args.PlexRoot, args.Year); //TODO fix this (changed ctor year param from str to int)
 
             Out("Validating...");
             var valid = formatter.Validate();

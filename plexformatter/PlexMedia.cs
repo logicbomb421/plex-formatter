@@ -12,7 +12,7 @@ namespace PlexFormatter
         public string Title { get; set; }
         public string DestinationPath { get; set; }
         public FileInfo SourceFile { get; set; }
-        public string Year { get; set; }
+        public int Year { get; set; } = -1;
 
         public PlexMedia(FileInfo sourceFile, string title)
         {
