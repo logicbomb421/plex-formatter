@@ -79,8 +79,9 @@ namespace PlexFormatterTests.FormatterTests
               .Select(s => s[_rand.Next(s.Length)]).ToArray());
         }
 
+        #region Validate()
         [TestMethod]
-        public void Formatter_IsValid_WithYear()
+        public void Formatter_Valid_ExplicitYear()
         {
             var f = new MovieFormatter(_source, _title, false, _plexRoot, _year);
             var result = f.Validate();
@@ -92,18 +93,18 @@ namespace PlexFormatterTests.FormatterTests
         }
 
         [TestMethod]
-        public void Formatter_IsValid_YearInFilename()
+        public void Formatter_Valid_YearInFilename()
         {
             var file = $"{generateRandomString()}.{_year}.{generateRandomString()}.{getValidExt}";
             _source = Path.Combine(Path.GetTempPath(), file);
             _files.Add(_source);
             using (File.Create(_source)) ; //noop
-            
+
             var f = new MovieFormatter(_source, _title, false, _plexRoot);
             var result = f.Validate();
             Assert.IsTrue(f.IsValidated, "Formatter was not in valid state after running validation method.");
             Assert.IsTrue(result.Status == ResultStatus.Success, $"Result status was not success. Log: \r\n {string.Join("\r\n\t", result.Log)}");
-            Assert.IsTrue(f.Year.GetValueOrDefault(-1) == _year, 
+            Assert.IsTrue(f.Year.GetValueOrDefault(-1) == _year,
                 $"Formatter year did not match provided year. Formatter: {f.Year.GetValueOrDefault(-1)} | Provided: {_year}");
             Assert.IsTrue(f.Movie.Year == _year, $"Movie year did not match provided year. Movie: {f.Movie.Year} | Provided: {_year}");
         }
@@ -152,5 +153,41 @@ namespace PlexFormatterTests.FormatterTests
             Assert.IsTrue(!f.Year.HasValue, $"Formatter year was not null when no year was found via regex. Current value: {f.Year.GetValueOrDefault(-1)}");
             Assert.IsTrue(f.Movie.Year == -1, $"Movie year had non-default vaule when no year was found via regex. Current value: {f.Movie.Year}");
         }
+
+        [TestMethod]
+        public void Formatter_Invalid_MultipleYears()
+        {
+            //currently if you provide a year, it can be whatever you want. we only check the years we find via regex
+            var file = $"{generateRandomString()}.{_year}.{_rand.Next(MIN_YEAR, _maxYear)}.{generateRandomString()}.{getValidExt}";
+            _source = Path.Combine(Path.GetTempPath(), file);
+            _files.Add(_source);
+            using (File.Create(_source)) ; //noop
+
+            var f = new MovieFormatter(_source, _title, false, _plexRoot);
+            var result = f.Validate();
+            Assert.IsTrue(!f.IsValidated, "Formatter was in valid state with incorrect year.");
+            Assert.IsTrue(result.Status != ResultStatus.Success, "Result status was success with incorrect year.");
+            Assert.IsTrue(!f.Year.HasValue, $"Formatter year was not null when multiple years were found via regex. Current value: {f.Year.GetValueOrDefault(-1)}");
+            Assert.IsTrue(f.Movie.Year == -1, $"Movie year had non-default vaule when multiple years were found via regex. Current value: {f.Movie.Year}");
+        }
+
+        [TestMethod]
+        public void Formatter_Invalid_NoTitle()
+        {
+            var f = new MovieFormatter(_source, null, false, _plexRoot, _year);
+            var result = f.Validate();
+            Assert.IsTrue(!f.IsValidated, "Formatter was in valid state with incorrect year.");
+            Assert.IsTrue(result.Status != ResultStatus.Success, "Result status was success with incorrect year.");
+            Assert.IsNull(f.Movie.Title, $"Movie title prop was not null even though nothing was supplied. Current value: {f.Movie.Title}");
+        }
+        #endregion
+
+        #region Format()
+
+        #endregion
+
+        #region Import()
+
+        #endregion
     }
 }

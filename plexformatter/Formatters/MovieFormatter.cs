@@ -78,7 +78,7 @@ namespace PlexFormatter.Formatters
                 log.Add("Could not find movie title.");
             }
 
-            //TODO should we still validate against the regex range if they supply the year?
+            //TODO currently no validation if user supplies year
             if (Year.HasValue)
             {
                 Movie.Year = Year.Value;
@@ -86,7 +86,7 @@ namespace PlexFormatter.Formatters
             else
             {
                 _worker?.ReportProgress(0, "No year provided, searching filename...");
-                //TODO return something more informative in case the implementer wants to prevent choices of the correct year to the user.
+                //TODO return something more informative in case the implementer wants to present choices of the correct year to the user.
                 var matches = rgx_yearKey.Matches(Movie.SourceFile.Name);
                 if (matches.Count == 0)
                     log.Add($"'{Movie.SourceFile.Name}' missing year identifier.");
@@ -99,7 +99,6 @@ namespace PlexFormatter.Formatters
                         Movie.Year = i;
                         Year = i;
                     }
-
                     _worker?.ReportProgress(0, $"Found '{Movie.Year}'");
                 }
             }
