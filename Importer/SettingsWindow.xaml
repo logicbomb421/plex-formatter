@@ -34,6 +34,8 @@
                           Content="Refresh on import" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,10,0,0"/>
                 <CheckBox Name="chkDeleteSource" IsChecked="{Binding Path=DeleteSourceFiles, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
                           Content="Delete source files" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,30,0,0"/>
+                <CheckBox Name="chkUseExpCopier" IsChecked="{Binding Path=UseExperimentalCopier, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                          Content="Use experimental copier" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,50,0,0"/>
             </Grid>
         </GroupBox>
 

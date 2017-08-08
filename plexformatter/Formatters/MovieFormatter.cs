@@ -12,6 +12,8 @@ namespace PlexFormatter.Formatters
 {
     public class MovieFormatter : FormatterBase
     {
+        private bool _useExperimentalCopier;
+
         private static Regex _rgx_yearKey = null;
         private Regex rgx_yearKey
         {
@@ -51,19 +53,20 @@ namespace PlexFormatter.Formatters
             }
         }
 
-        public MovieFormatter(BackgroundWorker worker, string source, string movieTitle, bool deleteSourceFiles, string plexRootDirectory, int? year = null)
-            : this(source, movieTitle, deleteSourceFiles, plexRootDirectory, year)
+        public MovieFormatter(BackgroundWorker worker, string source, string movieTitle, bool deleteSourceFiles, string plexMovieRootDirectory, int? year = null)
+            : this(source, movieTitle, deleteSourceFiles, plexMovieRootDirectory, year)
         {
             _worker = worker;
         }
 
-        public MovieFormatter(string source, string movieTitle, bool deleteSourceFiles, string plexRootDirectory, int? year = null)
+        public MovieFormatter(string source, string movieTitle, bool deleteSourceFiles, string plexRootDirectory, int? year = null, bool useExperimentalCopier = false)
         {
             if (!File.Exists(source))
-                throw new FileNotFoundException($"Could not find source file: {source}"); //TODO custom exception
+                throw new FileNotFoundException($"Could not find source file: {source}"); //TODO custom exception?
 
             _deleteSourceFiles = deleteSourceFiles;
-            _plexRootDirectory = PlexRootDirectory;
+            _plexRootDirectory = plexRootDirectory;
+            _useExperimentalCopier = useExperimentalCopier;
             Year = year;
 
             Media.Add(new PlexMedia(new FileInfo(source), movieTitle));
@@ -124,11 +127,12 @@ namespace PlexFormatter.Formatters
                     return vr;
             }
 
-            var result = new PlexFormatterResult();
+            var result = new PlexFormatterResult<char[]>();
             if (string.IsNullOrEmpty(Movie.DestinationPath))
             {
                 var removed_chars = new List<char>();
                 var title = $"{Movie.Title} ({Movie.Year})";
+
                 var folderName = title;
                 if (InvalidPathChars.IsMatch(folderName))
                 {
@@ -137,6 +141,7 @@ namespace PlexFormatter.Formatters
                         removed_chars.Add(matches[i].Value[0]);
                     folderName = InvalidPathChars.Replace(folderName, string.Empty);
                 }
+
                 var fileName = title + Movie.SourceFile.Extension;
                 if (InvalidPathChars.IsMatch(fileName))
                 {
@@ -145,13 +150,15 @@ namespace PlexFormatter.Formatters
                         removed_chars.Add(matches[i].Value[0]);
                     fileName = InvalidPathChars.Replace(fileName, string.Empty);
                 }
+
                 if (removed_chars.Count > 0)
                 {
+                    result.Data = removed_chars.ToArray();
                     result.Log.Add($"Removed invalid chars {string.Join(" ", removed_chars.Distinct())} from {title}");
                 }
-                var dbg = Path.Combine(PlexRootDirectory, folderName, fileName);
                 Movie.DestinationPath = Path.Combine(PlexRootDirectory, folderName, fileName);
             }
+            IsFormatted = true;
             return result.Finalize(PlexFormatterResult.ResultStatus.Success);
         }
 
@@ -177,11 +184,19 @@ namespace PlexFormatter.Formatters
 
             try
             {
-                _worker?.ReportProgress(0, $"Copying source file for {Movie.Title}");
-                var copier = new ProgressReportingFileCopier(Movie.SourceFile.FullName, Movie.DestinationPath);
-                copier.OnUpdate += (i) => _worker?.ReportProgress(0, new CopyUpdate(i, i == 0));
-                copier.OnComplete += () => _worker?.ReportProgress(0, "Complete!");
-                copier.Copy();
+                if (!_useExperimentalCopier)
+                {
+                    File.Copy(Movie.SourceFile.FullName, Movie.DestinationPath);
+                }
+                else
+                {
+                    _worker?.ReportProgress(0, $"Copying source file for {Movie.Title}");
+                    var copier = new ProgressReportingFileCopier(Movie.SourceFile.FullName, Movie.DestinationPath);
+                    //TODO now that im switching to MVVM, ill need to bubble these up to the VM instead of relying ong BG prog changed
+                    copier.OnUpdate += (i) => _worker?.ReportProgress(0, new CopyUpdate(i, i == 0));
+                    copier.OnComplete += () => _worker?.ReportProgress(0, "Complete!");
+                    copier.Copy();
+                }
             }
             catch (Exception ex)
             {

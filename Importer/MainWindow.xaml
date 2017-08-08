@@ -28,19 +28,24 @@
                     <TabItem Header="Movies">
                         <Grid>
                             <Label Content="File" HorizontalAlignment="Left" Height="26" Margin="10,10,0,0" VerticalAlignment="Top" Width="40"/>
-                            <TextBox Name="txtFile" HorizontalAlignment="Left" Height="23" Margin="55,13,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="445"/>
-                            <Button Name="btnChooseFile" Content="Choose File" HorizontalAlignment="Left" Margin="514,14,0,0" VerticalAlignment="Top" Width="87" Click="btnChooseFile_Click"/>
+                            <TextBox Name="txtFile" Text="{Binding Path=MovieTab.Path, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                     HorizontalAlignment="Left" Height="23" Margin="55,13,0,0" TextWrapping="NoWrap" VerticalAlignment="Top" Width="445"/>
+                            <Button Name="btnChooseFile" Command="{Binding Path=MovieTab.ChooseFile}"
+                                    Content="Choose File" HorizontalAlignment="Left" Margin="514,14,0,0" VerticalAlignment="Top" Width="87"/>
 
                             <Label Content="Title" HorizontalAlignment="Left" Height="26" Margin="10,55,0,0" VerticalAlignment="Top" Width="40"/>
-                            <TextBox x:Name="txtTitle" HorizontalAlignment="Left" Height="23" Margin="55,58,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="409"/>
+                            <TextBox x:Name="txtTitle" Text="{Binding Path=MovieTab.Title, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                     HorizontalAlignment="Left" Height="23" Margin="55,58,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="409"/>
 
                             <Label Content="Year" HorizontalAlignment="Left" Height="26" Margin="469,55,0,0" VerticalAlignment="Top" Width="40"/>
-                            <TextBox x:Name="txtYear" HorizontalAlignment="Left" Height="23" Margin="514,58,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="87"/>
+                            <TextBox x:Name="txtYear" Text="{Binding Path=MovieTab.Year, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                     HorizontalAlignment="Left" Height="23" Margin="514,58,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="87"/>
 
-                            <Button x:Name="btnClear" Content="Clear" HorizontalAlignment="Left" Margin="401,143,0,0" VerticalAlignment="Top" Width="87" Click="btnClear_Click"/>
-                            <Button x:Name="btnImport" Content="Import" HorizontalAlignment="Left" Margin="503,143,0,0" VerticalAlignment="Top" Width="87" Click="btnImport_Click"/>
+                            <Button x:Name="btnClear" Command="{Binding Path=MovieTab.Clear}"
+                                    Content="Clear" HorizontalAlignment="Left" Margin="401,143,0,0" VerticalAlignment="Top" Width="87"/>
+                            <Button x:Name="btnImport" Command="{Binding Path=MovieTab.Import}"
+                                    Content="Import" HorizontalAlignment="Left" Margin="503,143,0,0" VerticalAlignment="Top" Width="87"/>
 
-                            <Button Content="Debug" Name="__btnDebug" Margin="167,111,357,38" Click="__btnDebug_Click"/>
                         </Grid>
                     </TabItem>
                     <TabItem Header="TV Shows" IsEnabled="False" />
@@ -48,14 +53,15 @@
                     <TabItem Header="Music" IsEnabled="False" />
                     <TabItem Header="Debug" >
                         <Grid>
-                            
+                            <Button Content="Debug" Name="__btnDebug" Margin="167,111,357,38" Click="__btnDebug_Click"/>
                         </Grid>
                     </TabItem>
                 </TabControl>
             </Grid>
 
             <GroupBox Grid.Row="1" Header="Output" HorizontalAlignment="Left" Height="164" Margin="10,10,0,0" VerticalAlignment="Top" Width="590">
-                <TextBox Name="txtOutput" IsReadOnly="True" TextWrapping="Wrap" Margin="10,5,8,4"/>
+                <TextBox Name="txtOutput" Text="{Binding Path=MovieTab.Output, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                         IsReadOnly="True" TextWrapping="Wrap" Margin="10,5,8,4"/>
             </GroupBox>
 
         </Grid>

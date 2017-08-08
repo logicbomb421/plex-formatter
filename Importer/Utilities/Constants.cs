@@ -11,6 +11,7 @@
             public const string REFRESH_ON_IMPORT = "RefreshOnImport";
             public const string DELETE_SOURCE_FILES = "DeleteSourceFiles";
             public const string SHOW_DEBUG_PANEL = "ShowDebugPanel";
+            public const string USE_EXPERIMENTAL_COPIER = "UseExperimentalCopier";
         }
     }
 }

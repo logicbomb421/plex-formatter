@@ -16,7 +16,10 @@ namespace Importer.Utilities
             remove => CommandManager.RequerySuggested -= value;
         }
 
+        /// <param name="execute">Invoked when executing the command.</param>
         public RelayCommand(Action<object> execute) : this(o => true, execute) { }
+        /// <param name="execute">Invoked when executing the command.</param>
+        /// <param name="canExecute">Invoked to determine if the command can execute.</param>
         public RelayCommand(Predicate<object> canExecute, Action<object> execute)
         {
             _canExecute = canExecute ?? throw new ArgumentNullException(nameof(canExecute), "Must supply CanExecute predicate.");

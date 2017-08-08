@@ -12,8 +12,8 @@ namespace Importer.ViewModels
     public class MainWindowViewModel : ViewModelBase
     {
 
-        private MovieViewModel _movie;
-        public MovieViewModel Movie => _movie != null ? _movie : _movie = new MovieViewModel();
+        private MovieTabViewModel _movie;
+        public MovieTabViewModel MovieTab => _movie != null ? _movie : _movie = new MovieTabViewModel();
 
         private string _tiDebugIsVisible = null;
         public string ShowDebugPanel

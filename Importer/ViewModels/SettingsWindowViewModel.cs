@@ -14,10 +14,10 @@ namespace Importer.ViewModels
         private Window _parentWindow;
         private Configuration _config = null;
         private ICommand _saveToDisk;
-        private ICommand _cancel;
+        private ICommand _close;
 
         public ICommand SaveToDisk => _saveToDisk != null ? _saveToDisk : _saveToDisk = new RelayCommand(o => IsModified, o => SaveSettingsToDisk());
-        public ICommand Close => _cancel != null ? _cancel : _cancel = new RelayCommand(o => TryCloseWindow());
+        public ICommand Close => _close != null ? _close : _close = new RelayCommand(o => TryCloseWindow());
 
         public SettingsWindowViewModel(Window window)
         {
@@ -37,6 +37,7 @@ namespace Importer.ViewModels
             _config.AppSettings.Settings[MUSIC_ROOT].Value = _musicRoot;
             _config.AppSettings.Settings[REFRESH_ON_IMPORT].Value = _refreshOnImport.Value.ToString();
             _config.AppSettings.Settings[DELETE_SOURCE_FILES].Value = _deleteSourceFiles.Value.ToString();
+            _config.AppSettings.Settings[USE_EXPERIMENTAL_COPIER].Value = _useExperimentalCopier.Value.ToString();
 
             _config.Save(ConfigurationSaveMode.Modified);
             ConfigurationManager.RefreshSection("appSettings");
@@ -46,13 +47,15 @@ namespace Importer.ViewModels
 
         public void TryCloseWindow()
         {
+            //FYI: We need to ask the user this _after_ they've attempted to close, hence why we only supply an
+            //execute delegate to the ICommand above. Plus, the canExecute delegate is checked continuously...
             if (IsModified && MessageBox.Show("There are unsaved changes, are you shure you wish to close?", "Save Changes?", MessageBoxButton.YesNo) == MessageBoxResult.No)
                 return;
             _parentWindow.Close();
         }
         #endregion
 
-        #region Settings
+        #region Model Properties
         private string _movieRoot = ConfigurationManager.AppSettings[MOVIE_ROOT] ?? Defaults.PLEX_ROOT_MOVIE;
         public string MovieRoot
         {
@@ -126,6 +129,22 @@ namespace Importer.ViewModels
             {
                 _deleteSourceFiles = value;
                 OnPropertyChanged(nameof(DeleteSourceFiles));
+            }
+        }
+
+        private bool? _useExperimentalCopier = null;
+        public bool UseExperimentalCopier
+        {
+            get
+            {
+                if (!_useExperimentalCopier.HasValue)
+                    _useExperimentalCopier = bool.TryParse(ConfigurationManager.AppSettings[USE_EXPERIMENTAL_COPIER], out bool bb) ? bb : Defaults.PLEX_USE_EXPERIMENTAL_COPIER;
+                return _useExperimentalCopier.Value;
+            }
+            set
+            {
+                _useExperimentalCopier = value;
+                OnPropertyChanged(nameof(UseExperimentalCopier));
             }
         }
         #endregion
