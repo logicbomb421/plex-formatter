@@ -53,16 +53,10 @@ namespace PlexFormatter.Formatters
             }
         }
 
-        public MovieFormatter(BackgroundWorker worker, string source, string movieTitle, bool deleteSourceFiles, string plexMovieRootDirectory, int? year = null)
-            : this(source, movieTitle, deleteSourceFiles, plexMovieRootDirectory, year)
-        {
-            _worker = worker;
-        }
-
         public MovieFormatter(string source, string movieTitle, bool deleteSourceFiles, string plexRootDirectory, int? year = null, bool useExperimentalCopier = false)
         {
             if (!File.Exists(source))
-                throw new FileNotFoundException($"Could not find source file: {source}"); //TODO custom exception?
+                throw new FileNotFoundException($"Could not find source file.", source);
 
             _deleteSourceFiles = deleteSourceFiles;
             _plexRootDirectory = plexRootDirectory;
@@ -88,7 +82,7 @@ namespace PlexFormatter.Formatters
             }
             else
             {
-                _worker?.ReportProgress(0, "No year provided, searching filename...");
+                //_worker?.ReportProgress(0, "No year provided, searching filename...");
                 //TODO return something more informative in case the implementer wants to present choices of the correct year to the user.
                 var matches = rgx_yearKey.Matches(Movie.SourceFile.Name);
                 if (matches.Count == 0)
@@ -102,9 +96,11 @@ namespace PlexFormatter.Formatters
                         Movie.Year = i;
                         Year = i;
                     }
-                    _worker?.ReportProgress(0, $"Found '{Movie.Year}'");
+                    //_worker?.ReportProgress(0, $"Found '{Movie.Year}'");
                 }
             }
+
+
 
             var result = new PlexFormatterResult();
             if (log.Count > 0)
@@ -174,7 +170,7 @@ namespace PlexFormatter.Formatters
             var result = new PlexFormatterResult();
             try
             {
-                _worker?.ReportProgress(0, $"Creating directory for {Movie.Title}");
+                //_worker?.ReportProgress(0, $"Creating directory for {Movie.Title}");
                 Directory.CreateDirectory(Movie.DestinationPath.Substring(0, Movie.DestinationPath.LastIndexOf('\\')));
             }
             catch (Exception ex)
@@ -190,11 +186,11 @@ namespace PlexFormatter.Formatters
                 }
                 else
                 {
-                    _worker?.ReportProgress(0, $"Copying source file for {Movie.Title}");
+                    //_worker?.ReportProgress(0, $"Copying source file for {Movie.Title}");
                     var copier = new ProgressReportingFileCopier(Movie.SourceFile.FullName, Movie.DestinationPath);
                     //TODO now that im switching to MVVM, ill need to bubble these up to the VM instead of relying ong BG prog changed
-                    copier.OnUpdate += (i) => _worker?.ReportProgress(0, new CopyUpdate(i, i == 0));
-                    copier.OnComplete += () => _worker?.ReportProgress(0, "Complete!");
+                    //copier.OnUpdate += (i) => _worker?.ReportProgress(0, new CopyUpdate(i, i == 0));
+                    //copier.OnComplete += () => _worker?.ReportProgress(0, "Complete!");
                     copier.Copy();
                 }
             }
@@ -207,12 +203,12 @@ namespace PlexFormatter.Formatters
             {
                 try
                 {
-                    _worker?.ReportProgress(0, $"Deleting source file for {Movie.Title}");
+                    //_worker?.ReportProgress(0, $"Deleting source file for {Movie.Title}");
                     Movie.SourceFile.Delete();
                 }
                 catch (Exception ex)
                 {
-                    _worker?.ReportProgress(0, $"Unable to delete source file. The error was: {ex.Message}");
+                    //_worker?.ReportProgress(0, $"Unable to delete source file. The error was: {ex.Message}");
                 }
             }
             return result.Finalize(PlexFormatterResult.ResultStatus.Success);

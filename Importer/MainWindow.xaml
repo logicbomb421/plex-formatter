@@ -43,7 +43,7 @@
 
                             <Button x:Name="btnClear" Command="{Binding Path=MovieTab.Clear}"
                                     Content="Clear" HorizontalAlignment="Left" Margin="401,143,0,0" VerticalAlignment="Top" Width="87"/>
-                            <Button x:Name="btnImport" Command="{Binding Path=MovieTab.Import}"
+                            <Button x:Name="btnImport" Command="{Binding Path=MovieTab.Import, IsAsync=True}"
                                     Content="Import" HorizontalAlignment="Left" Margin="503,143,0,0" VerticalAlignment="Top" Width="87"/>
 
                         </Grid>

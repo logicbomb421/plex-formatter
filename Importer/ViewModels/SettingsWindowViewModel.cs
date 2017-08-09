@@ -2,6 +2,7 @@
 using PlexFormatter;
 using System.ComponentModel;
 using System.Configuration;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 using static Importer.Utilities.Constants.AppSettingKeys;
@@ -16,8 +17,8 @@ namespace Importer.ViewModels
         private ICommand _saveToDisk;
         private ICommand _close;
 
-        public ICommand SaveToDisk => _saveToDisk != null ? _saveToDisk : _saveToDisk = new RelayCommand(o => IsModified, o => SaveSettingsToDisk());
-        public ICommand Close => _close != null ? _close : _close = new RelayCommand(o => TryCloseWindow());
+        public ICommand SaveToDisk => _saveToDisk != null ? _saveToDisk : _saveToDisk = new RelayCommand(o => IsModified, o => Task.Delay(500) /*SaveSettingsToDisk()*/);
+        public ICommand Close => _close != null ? _close : _close = new RelayCommand(o => Task.Delay(500) /*TryCloseWindow()*/);
 
         public SettingsWindowViewModel(Window window)
         {

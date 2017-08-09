@@ -7,7 +7,6 @@ namespace PlexFormatter.Formatters
     public abstract class FormatterBase : IFormatter
     {
         protected bool _deleteSourceFiles = false;
-        protected BackgroundWorker _worker = null;
 
         public abstract string PlexRootDirectory { get; set; }
         public List<PlexMedia> Media { get; set; } = new List<PlexMedia>();
