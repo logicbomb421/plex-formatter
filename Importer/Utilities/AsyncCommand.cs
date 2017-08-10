@@ -20,10 +20,10 @@ namespace Importer.Utilities
             remove => CommandManager.RequerySuggested -= value;
         }
 
-        /// <summary></summary>
+        /// <summary>Constructs the command. CanExecute will always be iferred as true.</summary>
         /// <param name="execute">Invoked when executing the command.</param>
         public AsyncCommand(Action<object> execute) : this(o => true, execute, null) { }
-        /// <summary></summary>
+        /// <summary>Constructs the command.</summary>
         /// <param name="execute">Invoked when executing the command.</param>
         /// <param name="canExecute">Invoked to determine if the command can execute.</param>
         public AsyncCommand(Predicate<object> canExecute, Action<object> execute, EventHandler<Exception> onExecuteError)
