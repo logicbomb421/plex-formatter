@@ -1,9 +1,5 @@
 ﻿using Importer.Utilities;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Input;
 using PlexFormatter.Formatters;
 using System.Configuration;
@@ -14,133 +10,101 @@ namespace Importer.ViewModels.Tabs
 {
     public class MovieTabViewModel : ViewModelBase
     {
-        //TODO this entire thing blocks the UI thread. need to implement async/await
-        //might need to implement this a level down in RelayCommand
-
         private bool _isImporting = false;
-        private ICommand _chooseFile;
-        private ICommand _clear;
-        private ICommand _import;
 
-        public ICommand ChooseFile
+        #region ICommand ChooseFile
+        public ICommand ChooseFile { get; private set; }
+        private bool chooseFile_canExecute(object param) => !_isImporting;
+        private void chooseFile_execute(object param)
         {
-            get
+            var dlg = new Microsoft.Win32.OpenFileDialog()
             {
-                if (_chooseFile == null)
-                {
-                    //TODO test canExecute predicate to make sure it works
-                    _chooseFile = new RelayCommand(o => !_isImporting, chooseFile_execute, (sender, ex) => );
-                }
-                return _chooseFile;
+                Filter = "Plex Video Formats|*.mp4;*.mkv;*.avi" //TODO config setting
+            };
+            if (dlg.ShowDialog() ?? false)
+                Path = dlg.FileName;
+        }
+        private void chooseFile_onExecuteError(object sender, Exception ex)
+            => Out($"An error occurred while attempting to open the file dialog. The error was: {ex.Message}");
+        #endregion
+
+        #region ICommand Clear
+        public ICommand Clear { get; private set; }
+        private bool clear_canExecute(object param) => IsModified;
+        private void clear_execute(object param)
+        {
+            Path = string.Empty;
+            Title = string.Empty;
+            Year = null;
+            IsModified = false;
+        }
+        private void clear_onExecuteError(object sender, Exception ex)
+           => Out($"An error occurred while attempting to clear all input. The error was: {ex.Message}");
+        #endregion
+
+        #region ICommand Import
+        public ICommand Import { get; private set; }
+        private bool import_canExecute(object param) => !_isImporting;
+        private void import_execute(object param)
+        {
+            //TODO i dont like the manual control over this bool.. need to figure out the 'MVVM' way of doing this
+            _isImporting = true;
+            var formatter = new MovieFormatter(
+                _path,
+                _title,
+                bool.TryParse(ConfigurationManager.AppSettings[DELETE_SOURCE_FILES], out bool b) ? b : Defaults.PLEX_DELETE_SOURCE_FILES,
+                ConfigurationManager.AppSettings[MOVIE_ROOT] ?? Defaults.PLEX_ROOT_MOVIE,
+                _year,
+                bool.TryParse(ConfigurationManager.AppSettings[USE_EXPERIMENTAL_COPIER], out bool bb) ? bb : Defaults.PLEX_USE_EXPERIMENTAL_COPIER
+            );
+
+            Out("Validating...");
+            var valid = formatter.Validate();
+            if (valid.Status == PlexFormatterResult.ResultStatus.Failed)
+            {
+                Out($"Error validating: {string.Join(", ", valid.Log)}");
+                _isImporting = false;
+                return;
             }
-        }
-        private Task chooseFile_execute(object param)
-        {
-            return Task.Factory.StartNew(() =>
-            {
-                var dlg = new Microsoft.Win32.OpenFileDialog()
-                {
-                    Filter = "Plex Video Formats|*.mp4;*.mkv;*.avi" //TODO config setting
-                };
-                if (dlg.ShowDialog() ?? false)
-                    Path = dlg.FileName;
-            });
-        }
 
-        public ICommand Clear
-        {
-            get
+            Out("Formatting...");
+            var format = formatter.Format();
+            if (format.Status == PlexFormatterResult.ResultStatus.Failed)
             {
-                if (_clear == null)
-                {
-                    _clear = new RelayCommand(o => IsModified && !_isImporting, o =>
-                    {
-                        return Task.Factory.StartNew(() =>
-                        {
-                            Path = string.Empty;
-                            Title = string.Empty;
-                            Year = null;
-                            IsModified = false;
-                        });
-                    });
-                }
-                return _clear;
+                Out($"Error formatting: {string.Join(", ", valid.Log)}");
+                _isImporting = false;
+                return;
             }
-        }
+            if (format.Log.Count > 0) ;
+            format.Log.ForEach(entry => Out(entry));
 
-        public ICommand Import
-        {
-            get
+            Out("Importing...");
+            var import = formatter.Import();
+            if (import.Status == PlexFormatterResult.ResultStatus.Failed)
             {
-                if (_import == null)
-                {
-                    _import = new RelayCommand(o => !_isImporting && !string.IsNullOrEmpty(_path) && !string.IsNullOrEmpty(_title), o =>
-                    {
-                        return Task.Factory.StartNew(() =>
-                        {
-                            //TODO i dont like the manual control over this bool.. need to figure out the 'MVVM' way of doing this
-                            _isImporting = true;
-                            var formatter = new MovieFormatter(
-                                _path,
-                                _title,
-                                bool.TryParse(ConfigurationManager.AppSettings[DELETE_SOURCE_FILES], out bool b) ? b : Defaults.PLEX_DELETE_SOURCE_FILES,
-                                ConfigurationManager.AppSettings[MOVIE_ROOT] ?? Defaults.PLEX_ROOT_MOVIE,
-                                _year,
-                                bool.TryParse(ConfigurationManager.AppSettings[USE_EXPERIMENTAL_COPIER], out bool bb) ? bb : Defaults.PLEX_USE_EXPERIMENTAL_COPIER
-                            );
-
-                            //Out("Validating...");
-                            Output += formatOutput("Validating...");
-                            var valid = formatter.Validate();
-                            if (valid.Status == PlexFormatterResult.ResultStatus.Failed)
-                            {
-                                //Out($"Error validating: {string.Join(", ", valid.Log)}");
-                                Output += formatOutput($"Error validating: {string.Join(", ", valid.Log)}");
-                                _isImporting = false;
-                                return;
-                            }
-
-                            //Out("Formatting...");
-                            Output += formatOutput("Formatting...");
-                            var format = formatter.Format();
-                            if (format.Status == PlexFormatterResult.ResultStatus.Failed)
-                            {
-                                //Out($"Error formatting: {string.Join(", ", valid.Log)}");
-                                Output += formatOutput($"Error formatting: {string.Join(", ", valid.Log)}");
-                                _isImporting = false;
-                                return;
-                            }
-                            if (format.Log.Count > 0) ;
-                            format.Log.ForEach(entry => Output += formatOutput(entry));
-
-                            //Out("Importing...");
-                            Output += formatOutput("Importing...");
-                            var import = formatter.Import();
-                            if (import.Status == PlexFormatterResult.ResultStatus.Failed)
-                            {
-                                //Out($"Error importing: {string.Join(", ", valid.Log)}");
-                                Output += formatOutput($"Error importing: {string.Join(", ", valid.Log)}");
-                                _isImporting = false;
-                                return;
-                            }
-
-                            Output += formatOutput("Successful import!");
-                            _isImporting = false;
-                        });
-                    });
-                }
-                return _import;
+                Out($"Error importing: {string.Join(", ", valid.Log)}");
+                _isImporting = false;
+                return;
             }
+
+            Out("Successful import!");
+            _isImporting = false;
         }
+        private void import_onExecuteError(object sender, Exception ex)
+            => Out($"An error occurred while importing. The error was: {ex.Message}");
+        #endregion
 
         public MovieTabViewModel()
         {
             PropertyChanged += (o, args) => IsModified = true;
+            ChooseFile = new AsyncCommand(chooseFile_canExecute, chooseFile_execute, chooseFile_onExecuteError);//TODO test canExecute predicate to make sure it works
+            Clear = new AsyncCommand(clear_canExecute, clear_execute, clear_onExecuteError);
+            Import = new AsyncCommand(import_canExecute, import_execute, import_onExecuteError);
         }
 
         //TODO need to clean up the word wrap somehow
-        private string formatOutput(string message, bool newline = true, bool format = true)
-             => !format ? message : $"{DateTime.Now.ToString("HH:mm:ss.fff")} | {message}{(newline ? Environment.NewLine : string.Empty)}";
+        private void Out(string message, bool newline = true, bool format = true)
+             => Output += !format ? message : $"{DateTime.Now.ToString("HH:mm:ss.fff")} | {message}{(newline ? Environment.NewLine : string.Empty)}";
 
         #region Model Properties
         private string _path = string.Empty;

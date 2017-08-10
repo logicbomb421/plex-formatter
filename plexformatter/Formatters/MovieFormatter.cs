@@ -78,7 +78,7 @@ namespace PlexFormatter.Formatters
             //TODO currently no validation if user supplies year
             if (Year.HasValue)
             {
-                Movie.Year = Year.Value;
+                Movie.Year = Year.Value; //TODO just run through regex
             }
             else
             {

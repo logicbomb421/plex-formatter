@@ -59,7 +59,7 @@
     <Compile Include="Utilities\Constants.cs" />
     <Compile Include="ViewModels\Tabs\MovieTabViewModel.cs" />
     <Compile Include="ViewModels\ViewModelBase.cs" />
-    <Compile Include="Utilities\RelayCommand.cs" />
+    <Compile Include="Utilities\AsyncCommand.cs" />
     <Compile Include="ViewModels\MainWindowViewModel.cs" />
     <Compile Include="SettingsWindow.xaml.cs">
       <DependentUpon>SettingsWindow.xaml</DependentUpon>

@@ -5,6 +5,7 @@ using System.Configuration;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
+using System.Windows.Threading;
 using static Importer.Utilities.Constants.AppSettingKeys;
 
 namespace Importer.ViewModels
@@ -14,24 +15,12 @@ namespace Importer.ViewModels
         #region ViewModel
         private Window _parentWindow;
         private Configuration _config = null;
-        private ICommand _saveToDisk;
-        private ICommand _close;
+        private int _currentSettings = 0;
 
-        public ICommand SaveToDisk => _saveToDisk != null ? _saveToDisk : _saveToDisk = new RelayCommand(o => IsModified, o => Task.Delay(500) /*SaveSettingsToDisk()*/);
-        public ICommand Close => _close != null ? _close : _close = new RelayCommand(o => Task.Delay(500) /*TryCloseWindow()*/);
-
-        public SettingsWindowViewModel(Window window)
+        public ICommand SaveToDisk { get; private set; }
+        private bool saveToDisk_canExecute(object param) => IsModified;
+        private void saveToDisk_execute(object param)
         {
-            _parentWindow = window;
-            _config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
-            PropertyChanged += (o, args) => IsModified = true;
-        }
-
-        public void SaveSettingsToDisk()
-        {
-            if (!IsModified)
-                return;
-
             _config.AppSettings.Settings[MOVIE_ROOT].Value = _movieRoot;
             _config.AppSettings.Settings[TV_ROOT].Value = _tvRoot;
             _config.AppSettings.Settings[PHOTO_ROOT].Value = _photoRoot;
@@ -42,18 +31,63 @@ namespace Importer.ViewModels
 
             _config.Save(ConfigurationSaveMode.Modified);
             ConfigurationManager.RefreshSection("appSettings");
-            IsModified = false;
+            IsModified = false; //TODO can i 86 IsModified now that the settings are hashed?
+            setCurrentSettings();
             MessageBox.Show("Settings saved successfully!", "Success!", MessageBoxButton.OK);
         }
 
-        public void TryCloseWindow()
+        public ICommand Close { get; private set; }
+        private void close_execute(object param)
         {
             //FYI: We need to ask the user this _after_ they've attempted to close, hence why we only supply an
             //execute delegate to the ICommand above. Plus, the canExecute delegate is checked continuously...
             if (IsModified && MessageBox.Show("There are unsaved changes, are you shure you wish to close?", "Save Changes?", MessageBoxButton.YesNo) == MessageBoxResult.No)
                 return;
-            _parentWindow.Close();
+            Application.Current.Dispatcher.Invoke(_parentWindow.Close);
         }
+
+        public SettingsWindowViewModel(Window window)
+        {
+            _parentWindow = window;
+            _config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
+            PropertyChanged += (o, args) => IsModified = true;
+            SaveToDisk = new AsyncCommand(saveToDisk_canExecute, saveToDisk_execute, null); //TODO eventually pass handler when you log to file
+            Close = new AsyncCommand(close_execute);
+            setCurrentSettings();
+        }
+
+        //TODO this is kinda...hacky... it works, but i think theres more i could do here.
+        //ensure we are aware if the user changes settings, but then changes them back to what's currently on disk.
+        private void setCurrentSettings()
+            => _currentSettings = $"{MovieRoot}|{TVRoot}|{MusicRoot}|{PhotoRoot}|{RefreshOnImport}|{DeleteSourceFiles}|{UseExperimentalCopier}".GetHashCode();
+
+        //public void SaveSettingsToDisk()
+        //{
+        //    if (!IsModified)
+        //        return;
+
+        //    _config.AppSettings.Settings[MOVIE_ROOT].Value = _movieRoot;
+        //    _config.AppSettings.Settings[TV_ROOT].Value = _tvRoot;
+        //    _config.AppSettings.Settings[PHOTO_ROOT].Value = _photoRoot;
+        //    _config.AppSettings.Settings[MUSIC_ROOT].Value = _musicRoot;
+        //    _config.AppSettings.Settings[REFRESH_ON_IMPORT].Value = _refreshOnImport.Value.ToString();
+        //    _config.AppSettings.Settings[DELETE_SOURCE_FILES].Value = _deleteSourceFiles.Value.ToString();
+        //    _config.AppSettings.Settings[USE_EXPERIMENTAL_COPIER].Value = _useExperimentalCopier.Value.ToString();
+
+        //    _config.Save(ConfigurationSaveMode.Modified);
+        //    ConfigurationManager.RefreshSection("appSettings");
+        //    IsModified = false;
+        //    MessageBox.Show("Settings saved successfully!", "Success!", MessageBoxButton.OK);
+        //}
+
+        //public void TryCloseWindow()
+        //{
+        //    //FYI: We need to ask the user this _after_ they've attempted to close, hence why we only supply an
+        //    //execute delegate to the ICommand above. Plus, the canExecute delegate is checked continuously...
+        //    if (IsModified && MessageBox.Show("There are unsaved changes, are you shure you wish to close?", "Save Changes?", MessageBoxButton.YesNo) == MessageBoxResult.No)
+        //        return;
+        //    _parentWindow.Close();
+        //}
         #endregion
 
         #region Model Properties

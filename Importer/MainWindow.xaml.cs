@@ -27,9 +27,7 @@ namespace Importer
     /// </summary>
     public partial class MainWindow : Window
     {
-        BackgroundWorker _bwImport = new BackgroundWorker();
         Timer _tmOutputWriter = new Timer();
-
         object _locker = new object();
         StringBuilder _sbOutput = new StringBuilder();
 
@@ -38,35 +36,12 @@ namespace Importer
             InitializeComponent();
             DataContext = new MainWindowViewModel();
 
-            //_bwImport.WorkerReportsProgress = true;
-            //_bwImport.DoWork += bwImport_DoWork;
-            //_bwImport.ProgressChanged += bwImport_ProgressChanged;
-            //_bwImport.RunWorkerCompleted += bwImport_RunWorkerCompleted;
-            //_tmOutputWriter.Interval = 250;
-
             _tmOutputWriter.AutoReset = true;
             _tmOutputWriter.Elapsed += new ElapsedEventHandler(tmOutputWriter_Elapsed);
             _tmOutputWriter.Enabled = true;
         }
 
         #region Output
-        //private void Out(string message, bool appendCurrentLine = false)
-        //{
-        //    //TODO need to clean up the word wrap somehow
-        //    if (appendCurrentLine)
-        //    {
-        //        lock (_locker)
-        //            _sbOutput.Append(message);
-        //    }
-        //    else
-        //    {
-        //        message = $"{DateTime.Now.ToString("HH:mm:ss.fff")} | {message}";
-        //        lock (_locker)
-        //            _sbOutput.AppendLine(message);
-        //    }
-
-        //}
-
         private void Out(string message, bool newline = true, bool format = true)
         {
             //TODO need to clean up the word wrap somehow
@@ -102,100 +77,6 @@ namespace Importer
             }
         }
         #endregion  
-
-        #region Movie
-        //private void btnChooseFile_Click(object sender, RoutedEventArgs e)
-        //{
-        //    var dlg = new Microsoft.Win32.OpenFileDialog()
-        //    {
-        //        Filter = "Plex Video Formats|*.mp4;*.mkv;*.avi" //TODO config setting
-        //    };
-        //    if (dlg.ShowDialog() ?? false)
-        //        txtFile.Text = dlg.FileName;
-        //}
-
-        //private void btnClear_Click(object sender, RoutedEventArgs e)
-        //{
-        //    txtFile.Text = string.Empty;
-        //    txtTitle.Text = string.Empty;
-        //    txtYear.Text = string.Empty;
-        //}
-
-        //private void btnImport_Click(object sender, RoutedEventArgs e)
-        //{
-        //    if (!_bwImport.IsBusy)
-        //    {
-        //        btnImport.IsEnabled = false;
-        //        _bwImport.RunWorkerAsync(
-        //            new
-        //            {
-        //                File = txtFile.Text,
-        //                Title = txtTitle.Text,
-        //                DeleteSourceFiles = bool.TryParse(ConfigurationManager.AppSettings[DELETE_SOURCE_FILES], out bool bb) ? bb : Defaults.PLEX_DELETE_SOURCE_FILES,
-        //                PlexRoot = ConfigurationManager.AppSettings[MOVIE_ROOT],
-        //                Year = txtYear.Text
-        //            });
-        //    }
-        //}
-
-        //private void bwImport_DoWork(object sender, DoWorkEventArgs e)
-        //{
-        //    dynamic args = e.Argument;
-        //    var formatter = new MovieFormatter(_bwImport, args.File, args.Title, args.DeleteSourceFiles, args.PlexRoot, int.TryParse(args.Year, out int i) ? i : (int?)null); //TODO fix this (changed ctor year param from str to int)
-
-        //    Out("Validating...");
-        //    var valid = formatter.Validate();
-        //    if (valid.Status == PlexFormatterResult.ResultStatus.Failed)
-        //    {
-        //        Out($"Error validating: {string.Join(", ", valid.Log)}");
-        //        e.Result = false;
-        //        return;
-        //    }
-
-        //    Out("Formatting...");
-        //    var format = formatter.Format();
-        //    if (format.Status == PlexFormatterResult.ResultStatus.Failed)
-        //    {
-        //        Out($"Error formatting: {string.Join(", ", valid.Log)}");
-        //        e.Result = false;
-        //        return;
-        //    }
-        //    if (format.Log.Count > 0)
-        //        format.Log.ForEach(entry => Out(entry));
-
-        //    Out("Importing...");
-        //    var import = formatter.Import();
-        //    if (import.Status == PlexFormatterResult.ResultStatus.Failed)
-        //    {
-        //        Out($"Error importing: {string.Join(", ", valid.Log)}");
-        //        e.Result = false;
-        //        return;
-        //    }
-
-        //    e.Result = true;
-        //}
-        //private void bwImport_ProgressChanged(object sender, ProgressChangedEventArgs args)
-        //{
-        //    if (args.UserState.GetType() == typeof(CopyUpdate))
-        //    {
-        //        var cu = (CopyUpdate)args.UserState;
-        //        Out(cu.PercentComplete == 100 ? cu.PercentComplete.ToString() : $"{cu.PercentComplete}...", cu.PercentComplete == 100, cu.IsFirstUpdate);
-        //    }
-        //    else
-        //    {
-        //        Out((string)args.UserState);
-        //    }
-        //}
-        //private void bwImport_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
-        //{
-        //    //TODO should use mvvm binding for this
-        //    Dispatcher.Invoke(() => btnImport.IsEnabled = true);
-        //    if ((bool)e.Result)
-        //        Out("Successful import!");
-        //    else
-        //        Out("Unsuccessful import.");
-        //}
-        #endregion
 
         #region Menu Commands
         private void RefreshPlexLibrary_Click(object sender, RoutedEventArgs e)
