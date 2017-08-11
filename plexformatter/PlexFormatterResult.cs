@@ -2,32 +2,33 @@
 
 namespace PlexFormatter
 {
-    public class PlexFormatterResult
+    public enum ResultStatus : byte
     {
-        public enum ResultStatus : byte
-        {
-            Unknown,
-            Failed,
-            Success,
-        }
+        Unknown,
+        Failed,
+        Success,
+    }
+
+    public class Result
+    {
 
         public ResultStatus Status { get; set; } = ResultStatus.Unknown;
         public List<string> Log { get; set; } = new List<string>();
 
-        public PlexFormatterResult() { }
+        public Result() { Status = ResultStatus.Unknown; }
 
-        public PlexFormatterResult(ResultStatus status)
+        public Result(ResultStatus status)
         {
             Status = status;
         }
 
-        public PlexFormatterResult(ResultStatus status, params string[] addToLog)
+        public Result(ResultStatus status, params string[] addToLog)
         {
             Status = status;
             Log.AddRange(addToLog);
         }
 
-        public PlexFormatterResult Finalize(ResultStatus status, string addToLog = null)
+        public Result Finalize(ResultStatus status, string addToLog = null)
         {
             Status = status;
             if (!string.IsNullOrEmpty(addToLog))
@@ -36,7 +37,7 @@ namespace PlexFormatter
         }
     }
 
-    public class PlexFormatterResult<T> : PlexFormatterResult
+    public class PlexFormatterResult<T> : Result
     {
         public T Data { get; set; }
 

@@ -44,9 +44,10 @@
     <Compile Include="Formatters\FormatterBase.cs" />
     <Compile Include="Formatters\IFormatter.cs" />
     <Compile Include="Formatters\MovieFormatter.cs" />
+    <Compile Include="Formatters\TvFormatter.cs" />
     <Compile Include="PlexMedia.cs" />
     <Compile Include="ProgressReportingFileCopier.cs" />
-    <Compile Include="Formatters\TvFormatter.cs" />
+    <Compile Include="Formatters\TvFormatter.old.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="PlexFormatterResult.cs" />
     <Compile Include="Utilities.cs" />

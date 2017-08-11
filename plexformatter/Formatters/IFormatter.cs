@@ -8,8 +8,8 @@ namespace PlexFormatter.Formatters
         List<PlexMedia> Media { get; set; }
         bool IsValidated { get; set; }
         bool IsFormatted { get; set; }
-        PlexFormatterResult Validate();
-        PlexFormatterResult Format();
-        PlexFormatterResult Import();
+        Result Validate();
+        Result Format();
+        Result Import();
     }
 }

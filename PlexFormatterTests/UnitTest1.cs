@@ -27,7 +27,8 @@ namespace PlexFormatterTests
         [TestMethod]
         public void MyTestMethod()
         {
-
+            var tv = new TvFormatter(@"C:\Users\Michael\Downloads\Fringe Season 1", "Fringe", 0);
+            var r = tv.Validate();
         }
     }
 }

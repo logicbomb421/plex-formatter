@@ -5,6 +5,7 @@ using PlexFormatter.Formatters;
 using System.Configuration;
 using static Importer.Utilities.Constants.AppSettingKeys;
 using PlexFormatter;
+using Microsoft.Win32;
 
 namespace Importer.ViewModels.Tabs
 {
@@ -17,9 +18,12 @@ namespace Importer.ViewModels.Tabs
         private bool chooseFile_canExecute(object param) => !_isImporting;
         private void chooseFile_execute(object param)
         {
-            var dlg = new Microsoft.Win32.OpenFileDialog()
+            var dlg = new OpenFileDialog()
             {
-                Filter = "Plex Video Formats|*.mp4;*.mkv;*.avi" //TODO config setting
+                Filter = "Plex Video Formats|*.mp4;*.mkv;*.avi", //TODO config setting
+                CheckFileExists = true,
+                CheckPathExists = true,
+                InitialDirectory = Environment.GetEnvironmentVariable("HOMEDRIVE") + Environment.GetEnvironmentVariable("HOMEPATH"),
             };
             if (dlg.ShowDialog() ?? false)
                 Path = dlg.FileName;
@@ -60,7 +64,7 @@ namespace Importer.ViewModels.Tabs
 
             Out("Validating...");
             var valid = formatter.Validate();
-            if (valid.Status == PlexFormatterResult.ResultStatus.Failed)
+            if (valid.Status == ResultStatus.Failed)
             {
                 Out($"Error validating: {string.Join(", ", valid.Log)}");
                 _isImporting = false;
@@ -69,7 +73,7 @@ namespace Importer.ViewModels.Tabs
 
             Out("Formatting...");
             var format = formatter.Format();
-            if (format.Status == PlexFormatterResult.ResultStatus.Failed)
+            if (format.Status == ResultStatus.Failed)
             {
                 Out($"Error formatting: {string.Join(", ", valid.Log)}");
                 _isImporting = false;
@@ -80,7 +84,7 @@ namespace Importer.ViewModels.Tabs
 
             Out("Importing...");
             var import = formatter.Import();
-            if (import.Status == PlexFormatterResult.ResultStatus.Failed)
+            if (import.Status == ResultStatus.Failed)
             {
                 Out($"Error importing: {string.Join(", ", valid.Log)}");
                 _isImporting = false;

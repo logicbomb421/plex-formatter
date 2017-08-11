@@ -16,8 +16,8 @@ namespace PlexFormatter.Formatters
         protected static Regex InvalidPathChars 
             = new Regex(@"([^\p{L}\s\d\-_~,;\[\]\(\).'])", RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.Singleline);
 
-        public abstract PlexFormatterResult Validate();
-        public abstract PlexFormatterResult Format();
-        public abstract PlexFormatterResult Import();
+        public abstract Result Validate();
+        public abstract Result Format();
+        public abstract Result Import();
     }
 }

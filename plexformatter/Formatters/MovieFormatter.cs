@@ -38,7 +38,7 @@ namespace PlexFormatter.Formatters
                     _plexRootDirectory = PLEX_ROOT_MOVIE;
                 return _plexRootDirectory;
             }
-            set { _plexRootDirectory = value; }
+            set => _plexRootDirectory = value;
         }
 
         public int? Year { get; set; } = null;
@@ -66,14 +66,12 @@ namespace PlexFormatter.Formatters
             Media.Add(new PlexMedia(new FileInfo(source), movieTitle));
         }
 
-        public override PlexFormatterResult Validate()
+        public override Result Validate()
         {
             var log = new List<string>();
 
             if (string.IsNullOrEmpty(Movie.Title))
-            {
                 log.Add("Could not find movie title.");
-            }
 
             //TODO currently no validation if user supplies year
             if (Year.HasValue)
@@ -102,24 +100,24 @@ namespace PlexFormatter.Formatters
 
 
 
-            var result = new PlexFormatterResult();
+            var result = new Result();
             if (log.Count > 0)
             {
-                result.Status = PlexFormatterResult.ResultStatus.Failed;
+                result.Status = ResultStatus.Failed;
                 result.Log.AddRange(log);
                 return result;
             }
 
             IsValidated = true;
-            return result.Finalize(PlexFormatterResult.ResultStatus.Success);
+            return result.Finalize(ResultStatus.Success);
         }
 
-        public override PlexFormatterResult Format()
+        public override Result Format()
         {
             if (!IsValidated)
             {
                 var vr = Validate();
-                if (vr.Status != PlexFormatterResult.ResultStatus.Success)
+                if (vr.Status != ResultStatus.Success)
                     return vr;
             }
 
@@ -155,19 +153,19 @@ namespace PlexFormatter.Formatters
                 Movie.DestinationPath = Path.Combine(PlexRootDirectory, folderName, fileName);
             }
             IsFormatted = true;
-            return result.Finalize(PlexFormatterResult.ResultStatus.Success);
+            return result.Finalize(ResultStatus.Success);
         }
 
-        public override PlexFormatterResult Import()
+        public override Result Import()
         {
             if (!IsFormatted)
             {
                 var fr = Format();
-                if (fr.Status != PlexFormatterResult.ResultStatus.Success)
+                if (fr.Status != ResultStatus.Success)
                     return fr;
             }
 
-            var result = new PlexFormatterResult();
+            var result = new Result();
             try
             {
                 //_worker?.ReportProgress(0, $"Creating directory for {Movie.Title}");
@@ -175,7 +173,7 @@ namespace PlexFormatter.Formatters
             }
             catch (Exception ex)
             {
-                return result.Finalize(PlexFormatterResult.ResultStatus.Failed, $"Unable to create drirectory for file(s). The error was: {ex.Message}");
+                return result.Finalize(ResultStatus.Failed, $"Unable to create drirectory for file(s). The error was: {ex.Message}");
             }
 
             try
@@ -196,7 +194,7 @@ namespace PlexFormatter.Formatters
             }
             catch (Exception ex)
             {
-                return result.Finalize(PlexFormatterResult.ResultStatus.Failed, $"Unable to copy file. The error was: {ex.Message}");
+                return result.Finalize(ResultStatus.Failed, $"Unable to copy file. The error was: {ex.Message}");
             }
 
             if (_deleteSourceFiles)
@@ -211,7 +209,7 @@ namespace PlexFormatter.Formatters
                     //_worker?.ReportProgress(0, $"Unable to delete source file. The error was: {ex.Message}");
                 }
             }
-            return result.Finalize(PlexFormatterResult.ResultStatus.Success);
+            return result.Finalize(ResultStatus.Success);
         }
     }
 }
