@@ -11,8 +11,11 @@ namespace PlexFormatter.Formatters
 {
     public class TvFormatter : FormatterBase
     {
-        //https://regex101.com/r/QDts0q/2 made it here if modifications are needed
-        private Regex _rgxSeEp = new Regex(@"(\b|(?<=[_]))(((s(|e((ason)|(ries))))|(e|ep|episode))([0-9]?\d))(\b|(?=[_]))", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+        private static Regex _rgxSeason = new Regex(@"(?<=\b|\w)(s(|e((ason)|(ries)))([0-9]?\d))(?=\b|\w)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+        private static Regex _rgxEpisode = new Regex(@"(?<=\b|\w)((e|ep|episode)([0-9]?\d))(?=\b|\w)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+
+        private static readonly string[] _seasonTokens = { "s", "season", "series" };
+        private static readonly string[] _episodeTokens = { "e", "ep", "episode" };
 
         private string _plexRootDirectory = null;
         public override string PlexRootDirectory
@@ -40,8 +43,8 @@ namespace PlexFormatter.Formatters
 
             Media = new DirectoryInfo(source)
                 .GetFiles()
-                .Where(f => new[] { ".mkv",".m4v",".mp4" }.Contains(f.Extension))
-                .Select(f => new PlexTvMedia(f)); //TODO globalize + clean this up
+                .Where(f => new[] { ".mkv",".m4v",".mp4" }.Contains(f.Extension)) //TODO globalize + clean this up
+                .Select(f => new PlexTvMedia(f));
             if (!Media.Any())
                 throw new FileNotFoundException($"No files found in source directory: {source}");
 
@@ -63,24 +66,73 @@ namespace PlexFormatter.Formatters
                 m.Title = SeriesTitle;
                 //TODO add year once parsed
 
-                var matches = _rgxSeEp.Matches(m.SourceFile.Name);
-                if (matches.Count != 2)
+                //TODO maybe validate against thetvdb.com (what plex uses)
+
+                var rgx_season = _rgxSeason.Matches(m.SourceFile.Name);
+                if (rgx_season.Count != 1)
                 {
-                    r.Log.Add($"Incorrect number of matches found for file {m.SourceFile.Name}. Expecting season and episode tokens. Found: {string.Join(", ", matches)}");
+                    r.Log.Add($"Incorrect number of matches found for file {m.SourceFile.Name}. Expecting a single season token. Found {rgx_season.Count}: {string.Join(", ", rgx_season)}");
                     continue;
                 }
-                var tmpr = parseSeasonAndEpisode(m, matches);
-                if (tmpr.Status != ResultStatus.Success)
+
+                var rgx_episode = _rgxEpisode.Matches(m.SourceFile.Name);
+                if (rgx_episode.Count != 1)
                 {
-                    r.Log.AddRange(tmpr.Log);
-                    continue; //in case of later validation
+                    r.Log.Add($"Incorrect number of matches found for file {m.SourceFile.Name}. Expecting a single episode token. Found {rgx_episode.Count}: {string.Join(", ", rgx_episode)}");
+                    continue;
                 }
+
+                var tr_s = parseSeason(rgx_season[0]);
+
+                //var tr_e = parseEpisode(rgx_episode[0]);
+
+                ////////////////////////
+
+                //var matches = _rgxSeEp.Matches(m.SourceFile.Name);
+                //if (matches.Count != 2)
+                //{
+                //    r.Log.Add($"Incorrect number of matches found for file {m.SourceFile.Name}. Expecting season and episode tokens. Found: {string.Join(", ", matches)}");
+                //    continue;
+                //}
+                //var tmpr = parseSeasonAndEpisode(m, matches);
+                //if (tmpr.Status != ResultStatus.Success)
+                //{
+                //    r.Log.AddRange(tmpr.Log);
+                //    continue; //in case of later validation
+                //}
             }
 
             if (r.Log.Count == 0)
                 r.Status = ResultStatus.Success;
             return r;
         }
+        private Result<int> parseSeason(Match rgxMatch)
+        {
+            var result = new Result<int>(ResultStatus.Success);
+            var match = rgxMatch.Value.ToLower();
+            string token;
+            if (string.IsNullOrEmpty(token = _seasonTokens.FirstOrDefault(st => match.IndexOf(st, StringComparison.OrdinalIgnoreCase) != -1)))
+            {
+                result.Log.Add($"Unable to find season or episode token in match: {match}");
+            }
+            else
+            {
+                match = match.Replace(token, string.Empty);
+                if (int.TryParse(match, out int i))
+                    result.Data = i;
+                else
+                    result.Log.Add($"Could not convert parsed season value {match} into a number.");
+            }
+
+            if (result.Log.Count > 0)
+                result.Status = ResultStatus.Failed;
+            return result;
+        }
+
+        //private Result<int> parseEpisode(Match rgxMatch)
+        //{
+
+        //}
 
         private Result parseSeasonAndEpisode(PlexTvMedia media, MatchCollection matches)
         {

@@ -15,7 +15,7 @@ namespace PlexFormatter.Formatters
         private bool _useExperimentalCopier;
 
         private static Regex _rgx_yearKey = null;
-        private Regex rgx_yearKey
+        private static Regex rgx_yearKey
         {
             get
             {
@@ -121,7 +121,7 @@ namespace PlexFormatter.Formatters
                     return vr;
             }
 
-            var result = new PlexFormatterResult<char[]>();
+            var result = new Result<char[]>();
             if (string.IsNullOrEmpty(Movie.DestinationPath))
             {
                 var removed_chars = new List<char>();

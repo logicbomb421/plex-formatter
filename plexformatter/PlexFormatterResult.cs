@@ -37,15 +37,15 @@ namespace PlexFormatter
         }
     }
 
-    public class PlexFormatterResult<T> : Result
+    public class Result<T> : Result
     {
         public T Data { get; set; }
 
-        public PlexFormatterResult() : base() { }
-        public PlexFormatterResult(ResultStatus status) : base(status) { }
-        public PlexFormatterResult(ResultStatus status, params string[] addToLog) : base(status, addToLog) { }
+        public Result() : base() { }
+        public Result(ResultStatus status) : base(status) { }
+        public Result(ResultStatus status, params string[] addToLog) : base(status, addToLog) { }
 
-        public PlexFormatterResult(T data)
+        public Result(T data)
         {
             Data = data;
         }
