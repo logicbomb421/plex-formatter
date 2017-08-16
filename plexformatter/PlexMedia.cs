@@ -2,7 +2,16 @@
 
 namespace PlexFormatter
 {
-    public class PlexMedia
+    //interface is currently to support 'where T' clause in FormatterBase<T>
+    public interface IPlexMedia
+    {
+        string Title { get; set; }
+        string DestinationPath { get; set; }
+        FileInfo SourceFile { get; set; }
+        int Year { get; set; }
+    }
+
+    public class PlexMedia : IPlexMedia
     {
         public string Title { get; set; }
         public string DestinationPath { get; set; }
@@ -19,7 +28,6 @@ namespace PlexFormatter
         }
     }
 
-    //TODO convert movie to use this derived class structure? it doesnt need any special sauce, but might be nice for clarity
     public class PlexTvMedia : PlexMedia
     {
         public int Season { get; set; }

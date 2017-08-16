@@ -2,10 +2,10 @@
 
 namespace PlexFormatter.Formatters
 {
-    public interface IFormatter
+    public interface IFormatter<T>
     {
         string PlexRootDirectory { get; set; }
-        List<PlexMedia> Media { get; set; }
+        List<T> Media { get; set; }
         bool IsValidated { get; set; }
         bool IsFormatted { get; set; }
         Result Validate();

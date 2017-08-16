@@ -10,7 +10,7 @@ using static PlexFormatter.Defaults;
 
 namespace PlexFormatter.Formatters
 {
-    public class MovieFormatter : FormatterBase
+    public class MovieFormatter : FormatterBase<PlexMedia>
     {
         private bool _useExperimentalCopier;
 
@@ -43,6 +43,7 @@ namespace PlexFormatter.Formatters
 
         public int? Year { get; set; } = null;
 
+        //TODO use Media list? or maybe create PlexMovieMedia class?
         public PlexMedia Movie
         {
             get => Media.FirstOrDefault();
