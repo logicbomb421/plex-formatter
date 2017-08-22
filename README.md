@@ -23,7 +23,7 @@ All formatters inherit from this base class, which is a base implementation of `
 In both cases, `T` is constrained to the type `IPlexMedia`.
 
 #### Create the formatter
-The formatters differ based on the media being formatted. The current available filter types are:
+The formatters differ based on the media being formatted. The current available formatter types are:
 - `TvFormatter` (still in development)
 - `MovieFormatter`
 
@@ -78,7 +78,7 @@ which these occur does not matter. For instance, `MyTvShow.s01.E07.someOtherInfo
 `S01.MyTvShow.E07.someOtherInfo.mp4`, and `MyTvShow.s01e07.someOtherInfo.mp4` are all valid.
 
 This is based on a regex pattern that is currently a work-in-progress. You can see all the supported season token 
-formats [here](https://regex101.com/r/oU8nbH/13), and episode token formats can be found [here](https://regex101.com/r/gK6UOa/7).
+formats [here](https://regex101.com/r/oU8nbH/15), and episode token formats can be found [here](https://regex101.com/r/gK6UOa/8).
 
 ###### For Movies
 The filename only needs to contain the title and may contain the year of the movie. Year validity range is 
