@@ -2,7 +2,7 @@
 
 namespace PlexFormatter.Formatters
 {
-    public interface IFormatter<T>
+    public interface IFormatter<T> where T : IPlexMedia
     {
         string PlexRootDirectory { get; set; }
         List<T> Media { get; set; }

@@ -2,7 +2,6 @@
 
 namespace PlexFormatter
 {
-    //interface is currently to support 'where T' clause in FormatterBase<T>
     public interface IPlexMedia
     {
         string Title { get; set; }
