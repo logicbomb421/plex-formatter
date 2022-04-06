@@ -1,0 +1,23 @@
+[flake8]
+
+ignore = 
+    W191, # tabs instead of spaces
+    E302, # expected 2 blank lines, found 0
+    E265, # block comment should start with '# '
+    E241, # multiple spaces after ':'
+    F403, # from . import *
+    E401, # multiple imports on one line
+    E722, # do not use bare 'except'
+    E203, # whitespace before ':'
+    W503, # line break before binary operator
+    E712, # comparison to False should be 'if cond is False:' or 'if not cond:'
+    E501  # line too long (autoformatter does its best)
+
+max-line-length = 120
+show-source = True
+exclude =
+    .git,
+    __pycache__,
+    ignore,
+    *runner*,
+    *database*
