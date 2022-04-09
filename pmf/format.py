@@ -122,22 +122,18 @@ def format(
         final = f"{media_dest}/{item['to']}"
         _mkdirp(os.path.dirname(final), dry_run)
         log_message(f"Moving {item['from']}\n   └─> {final}")
-        # if dry_run:
-        #     continue
-        # shutil.copy2(item["from"], final)
         _copy_file(item["from"], final, dry_run)
 
         if user or group:
             log_message(f"Setting file ownership to {user}:{group}")
             _chown(final, user, group, dry_run)
 
-        mode = "0770"
+        mode = 0o770
         log_message(f"Setting file permissions to {mode}")
         _chmod(final, mode , dry_run)
 
         if clean:
             log_message("Removing original file...")
-            # os.unlink(item["from"])
             _rm_file(item["from"], dry_run)
 
     log_message("\nAll media moved successfully!")
