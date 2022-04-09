@@ -129,7 +129,7 @@ def format(
             _chown(final, user, group, dry_run)
 
         mode = 0o770
-        log_message(f"Setting file permissions to {mode}")
+        log_message(f"Setting file permissions to {oct(mode)}")
         _chmod(final, mode , dry_run)
 
         if clean:
