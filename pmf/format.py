@@ -3,6 +3,30 @@ import os, re, shutil
 from typing import List
 from .helpers import log_message, validate_file_extension
 
+def _copy_file(src: str, dst: str, dry_run: bool = False):
+    if dry_run:
+        return log_message("Dry run: NOT copying file!")
+    shutil.copy2(src, dst)
+
+def _rm_file(path: str, dry_run: bool = False):
+    if dry_run:
+        return log_message("Dry run: NOT removing file!")
+    os.unlink(path)
+
+def _mkdirp(path: str, dry_run: bool = False):
+    if dry_run:
+        return log_message("Dry run: NOT creating directory!")
+    os.makedirs(path, exist_ok=True)
+
+def _chown(path: str, user: str, group: str, dry_run: bool = False):
+    if dry_run:
+        return log_message("Dry run: NOT setting ownership!")
+    shutil.chown(path, user=user, group=group)
+
+def _chmod(path: str, permissions: str, dry_run: bool = False):
+    if dry_run:
+        return log_message("Dry run: NOT setting permissions!")
+    return os.chmod(path, permissions)
 
 @click.command()
 @click.argument("src", envvar="PMF_FORMAT_SRC", type=click.Path(exists=True))
@@ -47,6 +71,8 @@ from .helpers import log_message, validate_file_extension
 @click.option(
     "--clean", help="If set, the source file will be deleted once copied to the formatted destination.", is_flag=True
 )
+@click.option("-u", "--user", help="The name of the user to set on the copied file.", type=click.STRING)
+@click.option("-g", "--group", help="The name of the group to set on the copied file.", type=click.STRING)
 def format(
     src: str,
     title: str,
@@ -57,6 +83,8 @@ def format(
     plex_media_root: str,
     dry_run: bool,
     clean: bool,
+    user: str,
+    group: str,
     **kwargs,
 ):
     """Formats media."""
@@ -92,12 +120,24 @@ def format(
     media_dest = f"{plex_media_root}/{media_type}s/{media_title}"
     for item in work:
         final = f"{media_dest}/{item['to']}"
+        _mkdirp(os.path.dirname(final), dry_run)
         log_message(f"Moving {item['from']}\n   └─> {final}")
-        if dry_run:
-            continue
-        shutil.copy2(item["from"], final)
+        # if dry_run:
+        #     continue
+        # shutil.copy2(item["from"], final)
+        _copy_file(item["from"], final, dry_run)
+
+        if user or group:
+            log_message(f"Setting file ownership to {user}:{group}")
+            _chown(final, user, group, dry_run)
+
+        mode = "0770"
+        log_message(f"Setting file permissions to {mode}")
+        _chmod(final, mode , dry_run)
+
         if clean:
             log_message("Removing original file...")
-            os.unlink(item["from"])
+            # os.unlink(item["from"])
+            _rm_file(item["from"], dry_run)
 
     log_message("\nAll media moved successfully!")
