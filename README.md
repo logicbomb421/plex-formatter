@@ -20,7 +20,7 @@ Options:
   -T, --title TEXT                The title of the media. If omitted, the
                                   basename of the source directory will be
                                   used.
-  -t, --media-type [Movie|TV Show]
+  -t, --media-type [TV Show|Movie]
                                   The type of media being formatted.
                                   [required]
   -r, --regex-match TEXT          The regex pattern to use to match media name
@@ -34,6 +34,10 @@ Options:
   -n, --dry-run                   If set, no files will actually be moved.
   --clean                         If set, the source file will be deleted once
                                   copied to the formatted destination.
+  -u, --user TEXT                 The name of the user to set on the copied
+                                  file.
+  -g, --group TEXT                The name of the group to set on the copied
+                                  file.
   --help                          Show this message and exit.
 ```
 
