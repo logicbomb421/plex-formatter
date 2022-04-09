@@ -1,11 +1,5 @@
-FROM python:3.9
+FROM python:3.9-alpine
 WORKDIR /var/pmf
-
-# ADD setup.py .
-# ADD pmf/_version.py pmf/
-# RUN pip install .
-
-# ADD . .
 
 ADD . .
 RUN pip install .
