@@ -1,7 +1,7 @@
 import click
 import os, re, shutil
 from typing import List
-from .helpers import log_message
+from .helpers import log_message, validate_file_extension
 
 
 @click.command()
@@ -38,6 +38,7 @@ from .helpers import log_message
     show_default=True,
     default={"mkv", "mp4"},
     type=click.STRING,
+    callback=lambda _, __, val: [v if v.startswith(".") else f".{v}" for v in val],
 )
 @click.option(
     "--plex-media-root", help="The root directory for Plex media.", type=click.STRING, default="/mnt/ds918/Plex Media"
@@ -66,11 +67,12 @@ def format(
                 "",
                 f"Dry Run: {dry_run}",
                 "Media Information",
-                f"  {'Title':14}: {media_title}",
-                f"  {'Source':14}: {src}",
-                f"  {'Type':14}: {type}",
-                f"  {'Regex Match':14}: {regex_match}",
-                f"  {'Output Format':14}: {output_format}",
+                f"  {'Title':16}: {media_title}",
+                f"  {'Source':16}: {src}",
+                f"  {'Plex Media Root':16}: {plex_media_root}",
+                f"  {'Type':16}: {media_type}",
+                f"  {'Regex Match':16}: {regex_match}",
+                f"  {'Output Format':16}: {output_format}",
                 "",
             ]
         )
@@ -78,8 +80,7 @@ def format(
     regex = re.compile(regex_match)
     work = []
     log_message("Matching and formatting filenames...\n")
-    # TODO: add extension checking
-    for file_ in [f for f in os.scandir(src) if f.is_file()]:
+    for file_ in [f for f in os.scandir(src) if f.is_file() and validate_file_extension(f.name, file_formats)]:
         match = regex.match(file_.name)
         if not match:
             raise click.ClickException(f"No match found for {file_.name}. Not proceeding!")
@@ -91,7 +92,7 @@ def format(
     media_dest = f"{plex_media_root}/{media_type}s/{media_title}"
     for item in work:
         final = f"{media_dest}/{item['to']}"
-        log_message(f"Moving {item['from']} to {final}")
+        log_message(f"Moving {item['from']}\n   └─> {final}")
         if dry_run:
             continue
         shutil.copy2(item["from"], final)
@@ -99,4 +100,4 @@ def format(
             log_message("Removing original file...")
             os.unlink(item["from"])
 
-    log_message("All media moved successfully!")
+    log_message("\nAll media moved successfully!")
